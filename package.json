@@ -10,7 +10,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "concurrently \"npm run start:dev -w backend\" \"npm run dev -w frontend\"",
-    "dev:frontend": "npm run dev -w frontend", 
+    "dev:frontend": "npm run dev -w frontend",
     "dev:backend": "npm run start:dev -w backend",
     "build": "npm run build -w backend && npm run build -w frontend",
     "install:all": "npm install"
@@ -29,5 +29,8 @@
   "bugs": {
     "url": "https://github.com/jegiraldp/rpolitecnicaUsuarios/issues"
   },
-  "homepage": "https://github.com/jegiraldp/rpolitecnicaUsuarios#readme"
+  "homepage": "https://github.com/jegiraldp/rpolitecnicaUsuarios#readme",
+  "dependencies": {
+    "dotenv": "^17.2.3"
+  }
 }
