@@ -6,6 +6,8 @@ import { DataSource } from "typeorm";
 import { SeedService } from "../seed/seedService";
 import { College } from "../../colleges/entities/college.entity";
 import { CollegesModule } from "../../colleges/colleges.module";
+import { Interest } from "../../interests/entities/interest.entity";
+import { InterestsModule } from "../../interests/interests.module";
 export class TestDatabaseManager {
     private static module: TestingModule;
     private static app: INestApplication;
@@ -23,12 +25,13 @@ export class TestDatabaseManager {
                         database: process.env.MYSQL_DATABASE,
                         username: process.env.MYSQL_USER,
                         password: process.env.MYSQL_PASSWORD,
-                        entities: [College],
+                        entities: [College, Interest],
                         synchronize: true,
                         dropSchema: true
                     }),
-                    TypeOrmModule.forFeature([College]),
+                    TypeOrmModule.forFeature([College, Interest]),
                     CollegesModule,
+                    InterestsModule,
                 ],
                 providers: [SeedService]
             }).compile()
@@ -54,15 +57,16 @@ export class TestDatabaseManager {
                 TypeOrmModule.forRoot({
                     type: "sqlite",
                     database: ":memory:",
-                    entities: [College],
+                    entities: [College, Interest],
                     synchronize: true,
                     dropSchema: true,
                     extra: {
                         pragma: "FOREIGN_KEYS=ON;"
                     }
                 }),
-                TypeOrmModule.forFeature([College]),
+                TypeOrmModule.forFeature([College, Interest]),
                     CollegesModule,
+                    InterestsModule,
                 ],
                 providers: [SeedService]
         }).compile();

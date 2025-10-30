@@ -54,9 +54,6 @@ describe('CollegesService', () => {
 
     describe('GET /colleges', () => {
         it('should list colleges with pagination', async () => {
-            for (let i = 0; i < 3; i++) {
-                await request(app.getHttpServer()).post('/colleges').send({ name: `college-${i}` });
-            }
             const res = await request(app.getHttpServer())
                 .get('/colleges?page=1&limit=2')
                 .send();
@@ -66,8 +63,6 @@ describe('CollegesService', () => {
         });
 
         it('should filter by name (contains)', async () => {
-            await request(app.getHttpServer()).post('/colleges').send({ name: 'college-1' });
-            await request(app.getHttpServer()).post('/colleges').send({ name: 'college-2' });
             const res = await request(app.getHttpServer())
                 .get('/colleges?name=college-1')
                 .send();
@@ -80,22 +75,20 @@ describe('CollegesService', () => {
 
     describe('GET /colleges/:id', () => {
         it('should return a college by id', async () => {
-            const created = await request(app.getHttpServer()).post('/colleges').send({ name: 'some-college' });
-            const anyCollege = created.body;
+            const [anyCollege] = await collegeMother.createMany(1, { name: 'some-college' });
             const res = await request(app.getHttpServer())
-                .get(`/colleges/${anyCollege.id}`)
+                .get(`/colleges/${anyCollege!.id}`)
                 .send();
             expect(res.status).toBe(200);
-            expect(res.body?.id).toBe(anyCollege.id);
+            expect(res.body?.id).toBe(anyCollege!.id);
         });
     });
 
     describe('PATCH /colleges/:id', () => {
         it('should update a college name', async () => {
-            const created = await request(app.getHttpServer()).post('/colleges').send({ name: 'old-name' });
-            const anyCollege = created.body;
+            const [anyCollege] = await collegeMother.createMany(1, { name: 'old-name' });
             const res = await request(app.getHttpServer())
-                .patch(`/colleges/${anyCollege.id}`)
+                .patch(`/colleges/${anyCollege!.id}`)
                 .send({ name: 'Updated Name' });
             expect(res.status).toBe(200);
             expect(res.body?.name).toBe('updated name');
@@ -103,20 +96,20 @@ describe('CollegesService', () => {
         });
 
         it('should reject duplicate name', async () => {
-            const a = (await request(app.getHttpServer()).post('/colleges').send({ name: 'a-college' })).body;
-            const b = (await request(app.getHttpServer()).post('/colleges').send({ name: 'b-college' })).body;
+            const [a] = await collegeMother.createMany(1, { name: 'a-college' });
+            const [b] = await collegeMother.createMany(1, { name: 'b-college' });
             const res = await request(app.getHttpServer())
-                .patch(`/colleges/${a.id}`)
-                .send({ name: b.name });
+                .patch(`/colleges/${a!.id}`)
+                .send({ name: b!.name });
             expect(res.status).toBe(400);
         });
     });
 
     describe('DELETE /colleges/:id', () => {
         it('should soft delete a college', async () => {
-            const anyCollege = (await request(app.getHttpServer()).post('/colleges').send({ name: 'to-delete' })).body;
+            const [anyCollege] = await collegeMother.createMany(1, { name: 'to-delete' });
             const res = await request(app.getHttpServer())
-                .delete(`/colleges/${anyCollege.id}`)
+                .delete(`/colleges/${anyCollege!.id}`)
                 .send();
             expect(res.status).toBe(200);
             expect(res.body?.isActive).toBe(false);

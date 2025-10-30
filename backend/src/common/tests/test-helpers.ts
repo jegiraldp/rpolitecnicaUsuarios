@@ -4,15 +4,19 @@ import { Repository } from "typeorm";
 
 import { CollegesService } from "../../colleges/colleges.service";
 import { College } from "../../colleges/entities/college.entity";
+import { InterestsService } from "../../interests/interests.service";
+import { Interest } from "../../interests/entities/interest.entity";
 import { SeedService } from "../seed/seedService";
 
 export interface TestServices {
     collegeServices: CollegesService;
+    interestsService: InterestsService;
 
 }
 
 export interface TestRepositories {
     collegeRepository: Repository<College>;
+    interestRepository: Repository<Interest>;
 
 }
 
@@ -20,11 +24,13 @@ export class TestHelpers {
     static getRepositories(module: TestingModule): TestRepositories {
         return {
             collegeRepository: module.get<Repository<College>>(getRepositoryToken(College)),
+            interestRepository: module.get<Repository<Interest>>(getRepositoryToken(Interest)),
         }
     }
     static getServices(module: TestingModule): TestServices {
         return {
             collegeServices: module.get<CollegesService>(CollegesService),
+            interestsService: module.get<InterestsService>(InterestsService),
         }
     }
 
