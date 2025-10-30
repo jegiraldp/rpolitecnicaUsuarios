@@ -109,14 +109,14 @@ describe('CollegesService', () => {
       const existing: Partial<College> = { id: 'uuid-1', name: 'old name' };
       mockCollegeRepo.findOne.mockResolvedValue(existing);
       mockCollegeRepo.count.mockResolvedValue(0);
-      const updated = { ...existing, name: 'new name' } as any;
-      mockCollegeRepo.merge.mockReturnValue(updated);
-      mockCollegeRepo.save.mockResolvedValue(updated);
+      mockCollegeRepo.merge.mockImplementation((e, dto) => ({ ...e, ...dto }));
+      mockCollegeRepo.save.mockImplementation(async (arg) => arg);
 
       const response = await collegeService.update('uuid-1', { name: 'new name' });
       expect(response).toBeDefined();
       expect(response?.id).toBe('uuid-1');
       expect(response?.name).toBe('new name');
+      expect(response?.updatedAt).toBeDefined();
     });
 
     it('should throw NotFound when college does not exist', async () => {
@@ -129,6 +129,25 @@ describe('CollegesService', () => {
       mockCollegeRepo.findOne.mockResolvedValue(existing);
       mockCollegeRepo.count.mockResolvedValue(1);
       await expect(collegeService.update('uuid-1', { name: 'duplicated' })).rejects.toThrowError(BadRequestException);
+    });
+  })
+
+  describe('Remove College (soft delete)', () => {
+    it('should soft delete a college', async () => {
+      const existing: Partial<College> = { id: 'uuid-1', name: 'name', isActive: true } as any;
+      mockCollegeRepo.findOne.mockResolvedValue(existing);
+      const saved = { ...existing, isActive: false, deletedAt: new Date() } as any;
+      mockCollegeRepo.save.mockResolvedValue(saved);
+
+      const response = await collegeService.remove('uuid-1');
+      expect(response).toBeDefined();
+      expect(response?.isActive).toBe(false);
+      expect(response?.deletedAt).toBeDefined();
+    });
+
+    it('should throw NotFound if college does not exist', async () => {
+      mockCollegeRepo.findOne.mockResolvedValue(null);
+      await expect(collegeService.remove('missing')).rejects.toThrow();
     });
   })
 })

@@ -20,16 +20,16 @@ export class CollegesController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.collegesService.findOne(+id);
+    return this.collegesService.findOne(id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateCollegeDto: UpdateCollegeDto) {
-    return this.collegesService.update(+id, updateCollegeDto);
+    return this.collegesService.update(id, updateCollegeDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.collegesService.remove(+id);
+    return this.collegesService.remove(id);
   }
 }

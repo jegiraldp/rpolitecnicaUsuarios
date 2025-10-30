@@ -84,6 +84,7 @@ describe('CollegesService', () => {
        expect(updated).toBeDefined();
        expect(updated?.id).toBe(anyCollege.id);
        expect(updated?.name).toBe('updated name');
+       expect(updated?.updatedAt).toBeDefined();
      });
 
      it('should throw BadRequest when updating to an existing name', async () => {
@@ -95,6 +96,25 @@ describe('CollegesService', () => {
 
      it('should throw NotFound when college does not exist', async () => {
        await expect(services.collegeServices.update('non-existing-id', { name: 'something' })).rejects.toThrowError(NotFoundException);
+     });
+   })
+
+   describe('Remove colleges (soft delete)', () => {
+     it('should mark a college as inactive and set deletedAt', async () => {
+       const anyCollege = (await repositories.collegeRepository.find())[0];
+       const removed = await services.collegeServices.remove(anyCollege.id);
+       expect(removed).toBeDefined();
+       expect(removed?.isActive).toBe(false);
+       expect(removed?.deletedAt).toBeDefined();
+
+       const inDb = await repositories.collegeRepository.findOne({ where: { id: anyCollege.id } });
+       expect(inDb?.isActive).toBe(false);
+       expect(inDb?.deletedAt).toBeDefined();
+     });
+
+     it('should throw NotFound when trying to remove a non-existing college', async () => {
+       await expect(services.collegeServices.remove('non-existing-id'))
+        .rejects.toThrow();
      });
    })
 

@@ -9,6 +9,12 @@ export class College {
     @Index({ unique: true })
     name: string;
 
+    @Column({ type: 'datetime', nullable: true })
+    updatedAt: Date;
+
+    @Column({ type: 'boolean', default: true })
+    isActive: boolean;
+
     @Column({
         type: 'datetime',
         default: () => 'CURRENT_TIMESTAMP',

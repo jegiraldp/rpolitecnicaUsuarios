@@ -78,15 +78,28 @@ export class CollegesService {
         }
       }
 
-      const toSave = this.collegeRepository.merge(existing, updateCollegeDto);
+      const toSave = this.collegeRepository.merge(existing, {
+        ...updateCollegeDto,
+        updatedAt: new Date() as any,
+      });
       return await this.collegeRepository.save(toSave);
     } catch (error) {
       handleException(error, this.logger);
     }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} college`;
+  async remove(id: string): Promise<College | undefined> {
+    try {
+      const existing = await this.collegeRepository.findOne({ where: { id } });
+      if (!existing) {
+        throw new NotFoundException('College not found');
+      }
+      existing.isActive = false;
+      existing.deletedAt = new Date() as any;
+      return await this.collegeRepository.save(existing);
+    } catch (error) {
+      handleException(error, this.logger);
+    }
   }
 
   private async existsByName(name: string, excludeId?: string): Promise<boolean> {
