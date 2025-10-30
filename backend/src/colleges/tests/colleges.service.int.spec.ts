@@ -60,6 +60,21 @@ describe('CollegesService', () => {
        expect(found?.id).toBe(anyCollege.id);
        expect(found?.name).toBe(anyCollege.name);
      });
+
+     it('should filter colleges by name (contains)', async () => {
+       const list = await services.collegeServices.findAll({ page: 1, limit: 10, name: 'college-1' } as any);
+       expect(list).toBeDefined();
+       expect(Array.isArray(list)).toBe(true);
+       expect(list?.length).toBe(1);
+       expect(list[0].name).toBe('college-1');
+     });
+
+     it('should filter colleges by id (exact)', async () => {
+       const anyCollege2 = (await repositories.collegeRepository.find())[0];
+       const list = await services.collegeServices.findAll({ page: 1, limit: 10, id: anyCollege2.id } as any);
+       expect(list).toHaveLength(1);
+       expect(list[0].id).toBe(anyCollege2.id);
+     });
    })
 
 });

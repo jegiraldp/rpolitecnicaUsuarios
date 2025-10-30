@@ -6,7 +6,6 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { mockCollegeRepo } from './mocks/college.mocks';
 import { CollegeMother } from './colleges.mother';
 import { BadRequestException } from '@nestjs/common';
-import { PaginationDto } from '../../common/dto/pagination.dto';
 
 describe('CollegesService', () => {
   let collegeService: CollegesService;
@@ -61,7 +60,7 @@ describe('CollegesService', () => {
       ];
       mockCollegeRepo.find.mockResolvedValue(items);
 
-      const response = await collegeService.findAll({ page: 1, limit: 10 } as PaginationDto);
+      const response = await collegeService.findAll({ page: 1, limit: 10 } as any);
 
       expect(response).toBeDefined();
       expect(Array.isArray(response)).toBe(true);
@@ -79,5 +78,29 @@ describe('CollegesService', () => {
       expect(response?.id).toBe('uuid-123');
       expect(response?.name).toBe('eng college');
     })
+
+    it('should filter colleges by name (contains)', async () => {
+      const items = [
+        { id: 'id-1', name: 'engineering college' },
+      ];
+
+      const qb = mockCollegeRepo.createQueryBuilder();
+      qb.getMany.mockResolvedValue(items);
+
+      const response = await collegeService.findAll({ page: 1, limit: 10, name: 'engineer' } as any);
+      expect(response).toHaveLength(1);
+      expect(response[0].name).toBe('engineering college');
+    });
+
+    it('should filter colleges by id (exact)', async () => {
+      const items = [
+        { id: 'uuid-1', name: 'arts college' },
+      ];
+      mockCollegeRepo.find.mockResolvedValue(items);
+
+      const response = await collegeService.findAll({ page: 1, limit: 10, id: 'uuid-1' } as any);
+      expect(response).toHaveLength(1);
+      expect(response[0].id).toBe('uuid-1');
+    });
   })
 })

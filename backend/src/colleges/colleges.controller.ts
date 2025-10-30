@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestj
 import { CollegesService } from './colleges.service';
 import { CreateCollegeDto } from './dto/create-college.dto';
 import { UpdateCollegeDto } from './dto/update-college.dto';
-import { PaginationDto } from '../common/dto/pagination.dto';
+import { FindCollegesDto } from './dto/find-colleges.dto';
 
 @Controller('colleges')
 export class CollegesController {
@@ -14,8 +14,8 @@ export class CollegesController {
   }
 
   @Get()
-  findAll(@Query() pagination: PaginationDto) {
-    return this.collegesService.findAll(pagination);
+  findAll(@Query() filters: FindCollegesDto) {
+    return this.collegesService.findAll(filters);
   }
 
   @Get(':id')

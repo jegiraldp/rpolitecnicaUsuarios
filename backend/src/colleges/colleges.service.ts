@@ -5,7 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { College } from './entities/college.entity';
 import { Not, Repository } from 'typeorm';
 import { handleException } from '../common/handleErrors';
-import { PaginationDto } from '../common/dto/pagination.dto';
+import { FindCollegesDto } from './dto/find-colleges.dto';
 
 @Injectable()
 export class CollegesService {
@@ -27,13 +27,27 @@ export class CollegesService {
     }
   }
 
-  async findAll(pagination: PaginationDto): Promise<College[]> {
+  async findAll(filters?: FindCollegesDto): Promise<College[] | undefined> {
     try {
-      const page = Math.max(1, pagination?.page ?? 1);
-      const limitRaw = pagination?.limit ?? 10;
+      const page = Math.max(1, filters?.page ?? 1);
+      const limitRaw = filters?.limit ?? 10;
       const take = Math.min(Math.max(1, limitRaw), 100);
       const skip = (page - 1) * take;
-      return await this.collegeRepository.find({ skip, take });
+      const where: any = {};
+      if (filters?.id) where.id = String(filters.id);
+      if (filters?.name) where.name = filters.name.toLowerCase();
+
+      if (filters?.name) {
+        return await this.collegeRepository
+          .createQueryBuilder('college')
+          .where(where.id ? 'college.id = :id' : '1=1', where.id ? { id: where.id } : {})
+          .andWhere('LOWER(college.name) LIKE :name', { name: `%${filters.name.toLowerCase()}%` })
+          .skip(skip)
+          .take(take)
+          .getMany();
+      }
+
+      return await this.collegeRepository.find({ where, skip, take });
     } catch (error) {
       handleException(error, this.logger);
     }
@@ -47,6 +61,8 @@ export class CollegesService {
       handleException(error, this.logger);
     }
   }
+
+  // findAllBy merged into findAll
 
   update(id: number, updateCollegeDto: UpdateCollegeDto) {
     return `This action updates a #${id} college`;
