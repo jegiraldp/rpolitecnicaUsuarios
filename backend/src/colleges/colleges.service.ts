@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { CreateCollegeDto } from './dto/create-college.dto';
 import { UpdateCollegeDto } from './dto/update-college.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -64,16 +64,33 @@ export class CollegesService {
 
   // findAllBy merged into findAll
 
-  update(id: number, updateCollegeDto: UpdateCollegeDto) {
-    return `This action updates a #${id} college`;
+  async update(id: string, updateCollegeDto: UpdateCollegeDto): Promise<College | undefined> {
+    try {
+      const existing = await this.collegeRepository.findOne({ where: { id } });
+      if (!existing) {
+        throw new NotFoundException('College not found');
+      }
+
+      if (updateCollegeDto.name) {
+        const duplicate = await this.existsByName(updateCollegeDto.name, id);
+        if (duplicate) {
+          throw new BadRequestException('College with this name already exists');
+        }
+      }
+
+      const toSave = this.collegeRepository.merge(existing, updateCollegeDto);
+      return await this.collegeRepository.save(toSave);
+    } catch (error) {
+      handleException(error, this.logger);
+    }
   }
 
   remove(id: number) {
     return `This action removes a #${id} college`;
   }
 
-  private async existsByName(name: string, excludeId?: number): Promise<boolean> {
-    const where: any = { name }
+  private async existsByName(name: string, excludeId?: string): Promise<boolean> {
+    const where: any = { name: name.toLowerCase() }
     if (excludeId) {
       where.id = Not(excludeId)
     }

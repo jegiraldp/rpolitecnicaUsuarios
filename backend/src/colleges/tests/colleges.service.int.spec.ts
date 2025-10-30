@@ -3,7 +3,7 @@ import { TestHelpers, TestRepositories, TestServices } from '../../common/tests/
 import { TestDatabaseManager } from '../../common/tests/test-database';
 import { SeedService } from '../../common/seed/seedService';
 import { CollegeMother } from './colleges.mother';
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 
 describe('CollegesService', () => {
   let services: TestServices
@@ -74,6 +74,27 @@ describe('CollegesService', () => {
        const list = await services.collegeServices.findAll({ page: 1, limit: 10, id: anyCollege2.id } as any);
        expect(list).toHaveLength(1);
        expect(list[0].id).toBe(anyCollege2.id);
+     });
+   })
+
+   describe('Update colleges', () => {
+     it('should update a college name', async () => {
+       const anyCollege = (await repositories.collegeRepository.find())[0];
+       const updated = await services.collegeServices.update(anyCollege.id, { name: 'Updated Name' });
+       expect(updated).toBeDefined();
+       expect(updated?.id).toBe(anyCollege.id);
+       expect(updated?.name).toBe('updated name');
+     });
+
+     it('should throw BadRequest when updating to an existing name', async () => {
+       const list = await repositories.collegeRepository.find();
+       const a = list[0];
+       const b = list[1];
+       await expect(services.collegeServices.update(a.id, { name: b.name })).rejects.toThrowError(BadRequestException);
+     });
+
+     it('should throw NotFound when college does not exist', async () => {
+       await expect(services.collegeServices.update('non-existing-id', { name: 'something' })).rejects.toThrowError(NotFoundException);
      });
    })
 

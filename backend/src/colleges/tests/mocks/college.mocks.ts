@@ -2,6 +2,7 @@ export const mockCollegeRepo = {
     count: jest.fn(),
     save: jest.fn(),
     create: jest.fn(),
+    merge: jest.fn((entity: any, dto: any) => ({ ...entity, ...dto })),
     find: jest.fn(),
     findOne: jest.fn(),
     createQueryBuilder: jest.fn(() => ({

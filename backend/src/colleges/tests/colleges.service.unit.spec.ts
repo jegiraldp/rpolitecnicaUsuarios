@@ -5,7 +5,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { mockCollegeRepo } from './mocks/college.mocks';
 import { CollegeMother } from './colleges.mother';
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 
 describe('CollegesService', () => {
   let collegeService: CollegesService;
@@ -101,6 +101,34 @@ describe('CollegesService', () => {
       const response = await collegeService.findAll({ page: 1, limit: 10, id: 'uuid-1' } as any);
       expect(response).toHaveLength(1);
       expect(response[0].id).toBe('uuid-1');
+    });
+  })
+
+  describe('Update College', () => {
+    it('should update a college', async () => {
+      const existing: Partial<College> = { id: 'uuid-1', name: 'old name' };
+      mockCollegeRepo.findOne.mockResolvedValue(existing);
+      mockCollegeRepo.count.mockResolvedValue(0);
+      const updated = { ...existing, name: 'new name' } as any;
+      mockCollegeRepo.merge.mockReturnValue(updated);
+      mockCollegeRepo.save.mockResolvedValue(updated);
+
+      const response = await collegeService.update('uuid-1', { name: 'new name' });
+      expect(response).toBeDefined();
+      expect(response?.id).toBe('uuid-1');
+      expect(response?.name).toBe('new name');
+    });
+
+    it('should throw NotFound when college does not exist', async () => {
+      mockCollegeRepo.findOne.mockResolvedValue(null);
+      await expect(collegeService.update('missing-id', { name: 'x' })).rejects.toThrowError(NotFoundException);
+    });
+
+    it('should throw BadRequest when updating to duplicate name', async () => {
+      const existing: Partial<College> = { id: 'uuid-1', name: 'old name' };
+      mockCollegeRepo.findOne.mockResolvedValue(existing);
+      mockCollegeRepo.count.mockResolvedValue(1);
+      await expect(collegeService.update('uuid-1', { name: 'duplicated' })).rejects.toThrowError(BadRequestException);
     });
   })
 })
