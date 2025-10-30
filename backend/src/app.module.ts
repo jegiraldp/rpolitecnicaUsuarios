@@ -3,11 +3,12 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CollegesModule } from './colleges/colleges.module';
 import { InterestsModule } from './interests/interests.module';
+import { CareersModule } from './careers/careers.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [CollegesModule, InterestsModule,
+  imports: [CollegesModule, InterestsModule, CareersModule,
     ConfigModule.forRoot({envFilePath: '../.env', isGlobal: true}),
     TypeOrmModule.forRoot({
       type: 'mysql',
