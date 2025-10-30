@@ -41,7 +41,25 @@ describe('CollegesService', () => {
       const collegeDTO = CollegeMother.dto();
       await services.collegeServices.create(collegeDTO)
       await expect(services.collegeServices.create(CollegeMother.dto())).rejects.toThrowError(BadRequestException);
-    })
+   })
+   })
+
+   describe('Find colleges', () => {
+     it('should return all colleges', async () => {
+       const list = await services.collegeServices.findAll({ page: 1, limit: 10 } as any);
+       expect(list).toBeDefined();
+       expect(Array.isArray(list)).toBe(true);
+       // seeded with 5 by SeedService
+       expect(list?.length).toBe(5);
+     });
+
+     it('should return one college by id', async () => {
+       const anyCollege = (await repositories.collegeRepository.find())[0];
+       const found = await services.collegeServices.findOne(anyCollege.id);
+       expect(found).toBeDefined();
+       expect(found?.id).toBe(anyCollege.id);
+       expect(found?.name).toBe(anyCollege.name);
+     });
    })
 
 });

@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { College } from './entities/college.entity';
 import { Not, Repository } from 'typeorm';
 import { handleException } from '../common/handleErrors';
+import { PaginationDto } from '../common/dto/pagination.dto';
 
 @Injectable()
 export class CollegesService {
@@ -26,12 +27,25 @@ export class CollegesService {
     }
   }
 
-  findAll() {
-    return `This action returns all colleges`;
+  async findAll(pagination: PaginationDto): Promise<College[]> {
+    try {
+      const page = Math.max(1, pagination?.page ?? 1);
+      const limitRaw = pagination?.limit ?? 10;
+      const take = Math.min(Math.max(1, limitRaw), 100);
+      const skip = (page - 1) * take;
+      return await this.collegeRepository.find({ skip, take });
+    } catch (error) {
+      handleException(error, this.logger);
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} college`;
+  async findOne(id: string | number): Promise<College | null | undefined> {
+    try {
+      const idStr = String(id);
+      return await this.collegeRepository.findOne({ where: { id: idStr } });
+    } catch (error) {
+      handleException(error, this.logger);
+    }
   }
 
   update(id: number, updateCollegeDto: UpdateCollegeDto) {
