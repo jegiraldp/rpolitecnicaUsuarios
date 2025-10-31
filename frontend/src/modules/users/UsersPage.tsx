@@ -5,6 +5,7 @@ import type { User } from "@/types/User";
 import { UsersService } from "@/services/users";
 import { UsersAPI } from "@/services/api/usersService";
 import Modal from "@/components/ui/Modal";
+import FiltersPanel, { type FilterField } from "@/components/ui/Filters";
 import { CollegesService } from "@/services/colleges";
 import { CareersService } from "@/services/careers";
 import { InterestsService } from "@/services/interests";
@@ -24,19 +25,30 @@ export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [filters, setFilters] = useState<Record<string, string | string[]>>({ username:'', email:'', countries: '', colleges: '', careers: '', interests: '' });
   const [isOpen, setIsOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ username: "", email: "", country: "", collegeId: "", careerId: "", interestIds: [] as string[] });
   const [colleges, setColleges] = useState<College[]>([]);
   const [careers, setCareers] = useState<Career[]>([]);
   const [interests, setInterests] = useState<Interest[]>([]);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [toDelete, setToDelete] = useState<User | null>(null);
 
-  useEffect(() => {
-    const load = async () => {
+  const load = async () => {
       try {
         setLoading(true);
         setError(null);
-        const data = await UsersService.list({ page: 1, limit: 10 });
+        const data = await UsersService.list({
+          page: 1,
+          limit: 10,
+          username: (filters.username as string) || undefined,
+          email: (filters.email as string) || undefined,
+          country: (filters.countries as string) || undefined,
+          collegeId: (filters.colleges as string) || undefined,
+          careerId: (filters.careers as string) || undefined,
+          interestId: (filters.interests as string) || undefined,
+        } as any);
         setUsers(data);
       } catch (e: any) {
         setError(e?.message || "Error cargando usuarios");
@@ -44,8 +56,7 @@ export default function UsersPage() {
         setLoading(false);
       }
     };
-    load();
-  }, []);
+  useEffect(() => { load(); }, []);
 
   useEffect(() => {
     const loadRefs = async () => {
@@ -118,6 +129,28 @@ export default function UsersPage() {
     }
   };
 
+  const requestDelete = (u: User) => {
+    setToDelete(u);
+    setConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!toDelete) return;
+    try {
+      setLoading(true);
+      setError(null);
+      // Users do not have hard delete; perform deactivate
+      const deactivated = await UsersAPI.deactivate(toDelete.id);
+      setUsers((prev) => prev.map((x) => (x.id === toDelete.id ? (deactivated as unknown as User) : x)));
+      setConfirmOpen(false);
+      setToDelete(null);
+    } catch (e: any) {
+      setError(e?.message || "Error desactivando usuario");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const columns: ColumnDef<User>[] = [
     {
       id: "col_user",
@@ -125,7 +158,6 @@ export default function UsersPage() {
       cell: ({ row }) => {
         const u = row.original;
         const inits = initials(u.username);
-        const created = u.createdAt ? new Date(u.createdAt).toLocaleDateString() : "";
         return (
           <div className="flex items-center gap-3">
             <div className="h-9 w-9 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-sm font-semibold">
@@ -133,7 +165,6 @@ export default function UsersPage() {
             </div>
             <div className="leading-tight">
               <div className="text-gray-900 font-medium">{capitalize(u.username)}</div>
-              {created && <div className="text-xs text-gray-500">Registro: {created}</div>}
             </div>
           </div>
         );
@@ -200,7 +231,7 @@ export default function UsersPage() {
       cell: ({ row }) => (
         <div className="flex justify-end items-center gap-2">
           <button onClick={() => handleEdit(row.original)} className="text-blue-600 hover:text-blue-800">✏️</button>
-          <button className="text-red-600 hover:text-red-800">🗑️</button>
+          <button onClick={() => requestDelete(row.original)} className="text-red-600 hover:text-red-800">🗑️</button>
         </div>
       ),
     },
@@ -208,6 +239,20 @@ export default function UsersPage() {
 
   return (
     <div>
+      <FiltersPanel
+        fields={[
+          { name:'username', label:'Usuario', placeholder:'Buscar por usuario'},
+          { name:'email', label:'Email', placeholder:'Buscar por email', type: 'email' },
+          { name:'countries', label:'País', type:'select', options: ['','Colombia','Chile','México','Argentina','España','Perú','Ecuador','Bolivia','Uruguay'].map(c=>({label: c || 'Todos', value: c ? c.toLowerCase() : ''})) },
+          { name:'careers', label:'Carrera', type:'select', options: [{label:'Todas', value:''}, ...careers.map(c=>({label:c.name, value:c.id}))] },
+          { name:'colleges', label:'Universidad', type:'select', options: [{label:'Todas', value:''}, ...colleges.map(c=>({label:c.name, value:c.id}))] },
+          { name:'interests', label:'Interés', type:'select', options: [{label:'Todos', value:''}, ...interests.map(i=>({label:i.name, value:i.id}))] },
+        ] as FilterField[]}
+        values={filters}
+        onChange={(n,v)=> setFilters((f)=> ({...f,[n]:v}))}
+        onSearch={load}
+        onClear={()=>{ setFilters({ username:'', email:'', countries: '', colleges: '', careers: '', interests: ''}); load(); }}
+      />
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-semibold">Usuarios</h2>
         <button onClick={openCreate} className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700">
@@ -308,6 +353,20 @@ export default function UsersPage() {
           <div className="flex justify-end gap-2">
             <button onClick={() => setIsOpen(false)} className="px-3 py-2 rounded-md border">Cancelar</button>
             <button onClick={handleSave} disabled={loading} className="px-3 py-2 rounded-md bg-blue-600 text-white disabled:opacity-60">Guardar</button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal isOpen={confirmOpen} onClose={() => setConfirmOpen(false)} title="Confirmar acción" size="sm">
+        <div className="space-y-4">
+          <p>
+            ¿Seguro que deseas desactivar al usuario
+            {" "}
+            <span className="font-semibold">{toDelete ? capitalize(toDelete.username) : ""}</span>?
+          </p>
+          <div className="flex justify-end gap-2">
+            <button onClick={() => setConfirmOpen(false)} className="px-3 py-2 rounded-md border">Cancelar</button>
+            <button onClick={confirmDelete} disabled={loading} className="px-3 py-2 rounded-md bg-red-600 text-white disabled:opacity-60">Desactivar</button>
           </div>
         </div>
       </Modal>

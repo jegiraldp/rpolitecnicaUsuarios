@@ -5,6 +5,7 @@ import type { Interest } from "@/types/Interest";
 import Modal from "@/components/ui/Modal";
 import { useEffect } from "react";
 import { InterestsService } from "@/services/interests";
+import FiltersPanel, { type FilterField } from "@/components/ui/Filters";
 
 export default function InterestsPage() {
   const [interests, setInterests] = useState<Interest[]>([
@@ -12,13 +13,13 @@ export default function InterestsPage() {
   ]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [filters, setFilters] = useState<Record<string, string>>({ name: "" });
 
-  useEffect(() => {
-    const load = async () => {
+  const load = async () => {
       try {
         setLoading(true);
         setError(null);
-        const data = await InterestsService.list({ page: 1, limit: 10 });
+        const data = await InterestsService.list({ page: 1, limit: 10, name: filters.name || undefined });
         setInterests(data);
       } catch (e: any) {
         setError(e?.message || "Error cargando intereses");
@@ -26,7 +27,9 @@ export default function InterestsPage() {
         setLoading(false);
       }
     };
+  useEffect(() => {
     load();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const [isOpen, setIsOpen] = useState(false);
@@ -120,6 +123,13 @@ export default function InterestsPage() {
 
   return (
     <div>
+      <FiltersPanel
+        fields={[{ name: 'name', label: 'Nombre', placeholder: 'Buscar por nombre' }] as FilterField[]}
+        values={filters}
+        onChange={(n,v)=> setFilters((f)=>({...f,[n]:v}))}
+        onSearch={load}
+        onClear={()=>{ setFilters({ name: '' }); load(); }}
+      />
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-semibold">Intereses</h2>
         <button onClick={openCreate} className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700">

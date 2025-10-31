@@ -3,19 +3,20 @@ import Table from "@/components/ui/table";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { College } from "@/types/College";
 import Modal from "@/components/ui/Modal";
+import FiltersPanel, { type FilterField } from "@/components/ui/Filters";
 import { CollegesService } from "@/services/colleges";
 
 export default function CollegesPage() {
   const [colleges, setColleges] = useState<College[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [filters, setFilters] = useState<Record<string,string>>({ name: '' });
 
-  useEffect(() => {
-    const load = async () => {
+  const load = async () => {
       try {
         setLoading(true);
         setError(null);
-        const data = await CollegesService.list({ page: 1, limit: 10 });
+        const data = await CollegesService.list({ page: 1, limit: 10, name: filters.name || undefined });
         setColleges(data);
       } catch (e: any) {
         setError(e?.message || "Error cargando universidades");
@@ -23,8 +24,7 @@ export default function CollegesPage() {
         setLoading(false);
       }
     };
-    load();
-  }, []);
+  useEffect(() => { load(); }, []);
 
   const [isOpen, setIsOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -56,8 +56,8 @@ export default function CollegesPage() {
     try {
       setLoading(true);
       setError(null);
-      const removed = await CollegesService.remove(toDelete.id);
-      setColleges((prev) => prev.filter((i) => i.id !== removed.id));
+      await CollegesService.remove(toDelete.id);
+      setColleges((prev) => prev.filter((i) => i.id !== toDelete.id));
       setConfirmOpen(false);
       setToDelete(null);
     } catch (e: any) {
@@ -118,6 +118,13 @@ export default function CollegesPage() {
 
   return (
     <div>
+      <FiltersPanel
+        fields={[{ name:'name', label:'Nombre', placeholder:'Buscar por nombre'}] as FilterField[]}
+        values={filters}
+        onChange={(n,v)=> setFilters((f)=> ({...f,[n]:v}))}
+        onSearch={load}
+        onClear={()=>{ setFilters({ name: ''}); load(); }}
+      />
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-semibold">Universidades</h2>
         <button onClick={openCreate} className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700">
