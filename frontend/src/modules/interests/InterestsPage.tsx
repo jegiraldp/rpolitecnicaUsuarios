@@ -32,6 +32,8 @@ export default function InterestsPage() {
   const [isOpen, setIsOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState("");
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [toDelete, setToDelete] = useState<Interest | null>(null);
 
   const isEditing = useMemo(() => Boolean(editingId), [editingId]);
 
@@ -46,27 +48,48 @@ export default function InterestsPage() {
     setName(item.name);
     setIsOpen(true);
   };
-  const handleDelete = (item: Interest) =>
-    setInterests((prev) => prev.filter((i) => i.id !== item.id));
+  const requestDelete = (item: Interest) => {
+    setToDelete(item);
+    setConfirmOpen(true);
+  };
 
-  const handleSave = () => {
-    if (!name.trim()) return;
-    if (isEditing) {
-      setInterests((prev) => prev.map((i) => (i.id === editingId ? { ...i, name: name.trim() } : i)));
-    } else {
-      const newItem: Interest = { id: crypto.randomUUID(), name: name.trim() };
-      setInterests((prev) => [newItem, ...prev]);
+  const confirmDelete = async () => {
+    if (!toDelete) return;
+    try {
+      setLoading(true);
+      setError(null);
+      await InterestsService.remove(toDelete.id);
+      setInterests((prev) => prev.filter((i) => i.id !== toDelete.id));
+      setConfirmOpen(false);
+      setToDelete(null);
+    } catch (e: any) {
+      setError(e?.message || "Error eliminando interés");
+    } finally {
+      setLoading(false);
     }
-    setIsOpen(false);
+  };
+
+  const handleSave = async () => {
+    if (!name.trim()) return;
+    try {
+      setLoading(true);
+      setError(null);
+      if (isEditing && editingId) {
+        const updated = await InterestsService.update(editingId, { name: name.trim() });
+        setInterests((prev) => prev.map((i) => (i.id === updated.id ? updated : i)));
+      } else {
+        const created = await InterestsService.create({ name: name.trim() });
+        setInterests((prev) => [created, ...prev]);
+      }
+      setIsOpen(false);
+    } catch (e: any) {
+      setError(e?.message || "Error guardando interés");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const columns: ColumnDef<Interest>[] = [
-    {
-      id: "col_id", // 👈 agrega id único
-      accessorKey: "id",
-      header: "ID",
-      cell: (info) => info.getValue(),
-    },
     {
       id: "col_name",
       accessorKey: "name",
@@ -85,7 +108,7 @@ export default function InterestsPage() {
             ✏️
           </button>
           <button
-            onClick={() => handleDelete(row.original)}
+            onClick={() => requestDelete(row.original)}
             className="text-red-600 hover:text-red-800"
           >
             🗑️
@@ -122,7 +145,17 @@ export default function InterestsPage() {
           </div>
           <div className="flex justify-end gap-2">
             <button onClick={() => setIsOpen(false)} className="px-3 py-2 rounded-md border">Cancelar</button>
-            <button onClick={handleSave} className="px-3 py-2 rounded-md bg-blue-600 text-white">Guardar</button>
+            <button onClick={handleSave} disabled={loading} className="px-3 py-2 rounded-md bg-blue-600 text-white disabled:opacity-60">Guardar</button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal isOpen={confirmOpen} onClose={() => setConfirmOpen(false)} title="Confirmar eliminación" size="sm">
+        <div className="space-y-4">
+          <p>¿Seguro que deseas eliminar el interés <span className="font-semibold">{toDelete?.name}</span>?</p>
+          <div className="flex justify-end gap-2">
+            <button onClick={() => setConfirmOpen(false)} className="px-3 py-2 rounded-md border">Cancelar</button>
+            <button onClick={confirmDelete} disabled={loading} className="px-3 py-2 rounded-md bg-red-600 text-white disabled:opacity-60">Eliminar</button>
           </div>
         </div>
       </Modal>

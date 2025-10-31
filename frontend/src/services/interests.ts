@@ -10,6 +10,16 @@ export const InterestsService = {
     }
     return InterestsAPI.list(filters);
   },
+  async get(id: string): Promise<Interest> {
+    if (USE_MOCK) {
+      const data = await import("./mock/interests.json");
+      const list = data.default as Interest[];
+      const found = list.find((i) => i.id === id);
+      if (!found) throw new Error("Not found");
+      return found;
+    }
+    return InterestsAPI.get(id);
+  },
   async create(dto: Pick<Interest, "name">): Promise<Interest> {
     if (USE_MOCK) {
       return { id: crypto.randomUUID(), name: dto.name } as Interest;
@@ -29,4 +39,3 @@ export const InterestsService = {
     return InterestsAPI.remove(id);
   },
 };
-

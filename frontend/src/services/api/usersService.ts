@@ -23,6 +23,9 @@ export const UsersAPI = {
   async list(filters?: UserFilters): Promise<UserDTO[]> {
     return http<UserDTO[]>({ path: "/users", query: filters });
   },
+  async get(id: string): Promise<UserDTO> {
+    return http<UserDTO>({ path: `/users/${id}` });
+  },
   async create(dto: Partial<UserDTO>): Promise<UserDTO> {
     return http<UserDTO, Partial<UserDTO>>({ path: "/users", method: "POST", body: dto });
   },
@@ -33,4 +36,3 @@ export const UsersAPI = {
     return http<UserDTO>({ path: `/users/${id}/deactivate`, method: "PATCH" });
   },
 };
-
