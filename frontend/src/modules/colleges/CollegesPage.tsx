@@ -1,15 +1,30 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Table from "@/components/ui/table";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { College } from "@/types/College";
 import Modal from "@/components/ui/Modal";
+import { CollegesService } from "@/services/colleges";
 
 export default function CollegesPage() {
-  const [colleges, setColleges] = useState<College[]>([
-    { id: "1", name: "Universidad Politécnica" },
-    { id: "2", name: "Universidad de Artes" },
-    { id: "3", name: "Universidad de Comercio" },
-  ]);
+  const [colleges, setColleges] = useState<College[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await CollegesService.list({ page: 1, limit: 10 });
+        setColleges(data);
+      } catch (e: any) {
+        setError(e?.message || "Error cargando universidades");
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
 
   const [isOpen, setIsOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -36,22 +51,40 @@ export default function CollegesPage() {
     setConfirmOpen(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!toDelete) return;
-    setColleges((prev) => prev.filter((i) => i.id !== toDelete.id));
-    setConfirmOpen(false);
-    setToDelete(null);
+    try {
+      setLoading(true);
+      setError(null);
+      const removed = await CollegesService.remove(toDelete.id);
+      setColleges((prev) => prev.filter((i) => i.id !== removed.id));
+      setConfirmOpen(false);
+      setToDelete(null);
+    } catch (e: any) {
+      setError(e?.message || "Error eliminando universidad");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!name.trim()) return;
-    if (isEditing && editingId) {
-      setColleges((prev) => prev.map((i) => (i.id === editingId ? { ...i, name: name.trim() } : i)));
-    } else {
-      const newItem: College = { id: crypto.randomUUID(), name: name.trim() };
-      setColleges((prev) => [newItem, ...prev]);
+    try {
+      setLoading(true);
+      setError(null);
+      if (isEditing && editingId) {
+        const updated = await CollegesService.update(editingId, { name: name.trim() });
+        setColleges((prev) => prev.map((i) => (i.id === updated.id ? updated : i)));
+      } else {
+        const created = await CollegesService.create({ name: name.trim() });
+        setColleges((prev) => [created, ...prev]);
+      }
+      setIsOpen(false);
+    } catch (e: any) {
+      setError(e?.message || "Error guardando universidad");
+    } finally {
+      setLoading(false);
     }
-    setIsOpen(false);
   };
 
   const columns: ColumnDef<College>[] = [
@@ -92,6 +125,7 @@ export default function CollegesPage() {
         </button>
       </div>
 
+      {error && <div className="mb-2 text-sm text-red-600">{error}</div>}
       <Table<College> data={colleges} columns={columns} />
 
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title={isEditing ? "Editar universidad" : "Nueva universidad"} size="sm">
@@ -107,7 +141,7 @@ export default function CollegesPage() {
           </div>
           <div className="flex justify-end gap-2">
             <button onClick={() => setIsOpen(false)} className="px-3 py-2 rounded-md border">Cancelar</button>
-            <button onClick={handleSave} className="px-3 py-2 rounded-md bg-blue-600 text-white">Guardar</button>
+            <button onClick={handleSave} disabled={loading} className="px-3 py-2 rounded-md bg-blue-600 text-white disabled:opacity-60">Guardar</button>
           </div>
         </div>
       </Modal>
@@ -117,11 +151,10 @@ export default function CollegesPage() {
           <p>¿Seguro que deseas eliminar la universidad <span className="font-semibold">{toDelete?.name}</span>?</p>
           <div className="flex justify-end gap-2">
             <button onClick={() => setConfirmOpen(false)} className="px-3 py-2 rounded-md border">Cancelar</button>
-            <button onClick={confirmDelete} className="px-3 py-2 rounded-md bg-red-600 text-white">Eliminar</button>
+            <button onClick={confirmDelete} disabled={loading} className="px-3 py-2 rounded-md bg-red-600 text-white disabled:opacity-60">Eliminar</button>
           </div>
         </div>
       </Modal>
     </div>
   );
 }
-
