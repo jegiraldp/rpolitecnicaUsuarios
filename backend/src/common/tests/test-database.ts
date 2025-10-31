@@ -10,6 +10,8 @@ import { Interest } from "../../interests/entities/interest.entity";
 import { InterestsModule } from "../../interests/interests.module";
 import { Career } from "../../careers/entities/career.entity";
 import { CareersModule } from "../../careers/careers.module";
+import { User } from "../../users/entities/user.entity";
+import { UsersModule } from "../../users/users.module";
 export class TestDatabaseManager {
     private static module: TestingModule;
     private static app: INestApplication;
@@ -27,14 +29,15 @@ export class TestDatabaseManager {
                         database: process.env.MYSQL_DATABASE,
                         username: process.env.MYSQL_USER,
                         password: process.env.MYSQL_PASSWORD,
-                        entities: [College, Interest, Career],
+                        entities: [College, Interest, Career, User],
                         synchronize: true,
                         dropSchema: true
                     }),
-                    TypeOrmModule.forFeature([College, Interest, Career]),
+                    TypeOrmModule.forFeature([College, Interest, Career, User]),
                     CollegesModule,
                     InterestsModule,
                     CareersModule,
+                    UsersModule,
                 ],
                 providers: [SeedService]
             }).compile()
@@ -60,17 +63,18 @@ export class TestDatabaseManager {
                 TypeOrmModule.forRoot({
                     type: "sqlite",
                     database: ":memory:",
-                    entities: [College, Interest, Career],
+                    entities: [College, Interest, Career, User],
                     synchronize: true,
                     dropSchema: true,
                     extra: {
                         pragma: "FOREIGN_KEYS=ON;"
                     }
                 }),
-                TypeOrmModule.forFeature([College, Interest, Career]),
+                TypeOrmModule.forFeature([College, Interest, Career, User]),
                     CollegesModule,
                     InterestsModule,
                     CareersModule,
+                    UsersModule,
                 ],
                 providers: [SeedService]
         }).compile();

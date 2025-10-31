@@ -8,12 +8,15 @@ import { InterestsService } from "../../interests/interests.service";
 import { Interest } from "../../interests/entities/interest.entity";
 import { CareersService } from "../../careers/careers.service";
 import { Career } from "../../careers/entities/career.entity";
+import { UsersService } from "../../users/users.service";
+import { User } from "../../users/entities/user.entity";
 import { SeedService } from "../seed/seedService";
 
 export interface TestServices {
     collegeServices: CollegesService;
     interestsService: InterestsService;
     careersService: CareersService;
+    usersService: UsersService;
 
 }
 
@@ -21,6 +24,7 @@ export interface TestRepositories {
     collegeRepository: Repository<College>;
     interestRepository: Repository<Interest>;
     careerRepository: Repository<Career>;
+    userRepository: Repository<User>;
 
 }
 
@@ -30,6 +34,7 @@ export class TestHelpers {
             collegeRepository: module.get<Repository<College>>(getRepositoryToken(College)),
             interestRepository: module.get<Repository<Interest>>(getRepositoryToken(Interest)),
             careerRepository: module.get<Repository<Career>>(getRepositoryToken(Career)),
+            userRepository: module.get<Repository<User>>(getRepositoryToken(User)),
         }
     }
     static getServices(module: TestingModule): TestServices {
@@ -37,6 +42,7 @@ export class TestHelpers {
             collegeServices: module.get<CollegesService>(CollegesService),
             interestsService: module.get<InterestsService>(InterestsService),
             careersService: module.get<CareersService>(CareersService),
+            usersService: module.get<UsersService>(UsersService),
         }
     }
 
