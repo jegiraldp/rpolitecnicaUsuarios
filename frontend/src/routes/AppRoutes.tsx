@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import MainLayout from "../components/layout/MainLayout";
 
 const InterestsPage = lazy(() => import("../modules/interests/InterestsPage"));
-const UsersPage = () => <div className="p-4">Lista de usuarios</div>;
+const UsersPage = lazy(() => import("../modules/users/UsersPage"));
 const CollegesPage = lazy(() => import("../modules/colleges/CollegesPage"));
 const CareersPage = lazy(() => import("../modules/careers/CareersPage"));
 
