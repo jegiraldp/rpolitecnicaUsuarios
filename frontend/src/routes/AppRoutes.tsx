@@ -5,7 +5,7 @@ import MainLayout from "../components/layout/MainLayout";
 const InterestsPage = lazy(() => import("../modules/interests/InterestsPage"));
 const UsersPage = () => <div className="p-4">Lista de usuarios</div>;
 const CollegesPage = lazy(() => import("../modules/colleges/CollegesPage"));
-const CareersPage = () => <div className="p-4">Lista de carreras</div>;
+const CareersPage = lazy(() => import("../modules/careers/CareersPage"));
 
 const AppRoutes = () => {
   return (
