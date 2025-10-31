@@ -1,4 +1,4 @@
-import { IsArray, IsBoolean, IsEmail, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import { IsBoolean, IsEmail, IsOptional, IsString, IsUUID } from 'class-validator';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 
 export class FindUsersDto extends PaginationDto {
@@ -34,4 +34,3 @@ export class FindUsersDto extends PaginationDto {
   @IsUUID('4')
   interestId?: string;
 }
-

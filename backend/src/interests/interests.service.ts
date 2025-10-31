@@ -13,7 +13,7 @@ export class InterestsService {
   constructor(
     @InjectRepository(Interest)
     private readonly interestRepository: Repository<Interest>,
-  ) {}
+  ) { }
 
   async create(createDto: CreateInterestDto) {
     try {
@@ -26,7 +26,7 @@ export class InterestsService {
     }
   }
 
-  async findAll(filters?: FindInterestsDto): Promise<Interest[]> {
+  async findAll(filters?: FindInterestsDto): Promise<Interest[] | undefined | null> {
     try {
       const page = Math.max(1, filters?.page ?? 1);
       const limitRaw = filters?.limit ?? 10;

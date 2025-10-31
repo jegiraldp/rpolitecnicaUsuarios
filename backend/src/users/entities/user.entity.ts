@@ -16,7 +16,7 @@ export class User {
   @Index({ unique: true })
   email: string;
 
-  @Column({ length: 120, nullable: true })
+  @Column({ type: 'varchar', length: 120, nullable: true })
   country: string | null;
 
   @Column({ name: 'is_active', type: 'boolean', default: true })
@@ -45,4 +45,3 @@ export class User {
     if (this.username) this.username = this.username.toLowerCase();
   }
 }
-

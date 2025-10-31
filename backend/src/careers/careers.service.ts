@@ -26,7 +26,7 @@ export class CareersService {
     }
   }
 
-  async findAll(filters?: FindCareersDto): Promise<Career[]> {
+  async findAll(filters?: FindCareersDto): Promise<Career[] | undefined | null> {
     try {
       const page = Math.max(1, filters?.page ?? 1);
       const limitRaw = filters?.limit ?? 10;
