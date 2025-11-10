@@ -9,9 +9,11 @@ import FiltersPanel, { type FilterField } from "@/components/ui/Filters";
 import { CollegesService } from "@/services/colleges";
 import { CareersService } from "@/services/careers";
 import { InterestsService } from "@/services/interests";
+import { CountriesService } from "@/services/countries";
 import type { College } from "@/types/College";
 import type { Career } from "@/types/Career";
 import type { Interest } from "@/types/Interest";
+import type { CountryOption } from "@/services/countries";
 import { PlugIcon } from "@/utils/plugins/plugicon";
 
 const initials = (name: string) => {
@@ -53,6 +55,7 @@ export default function UsersPage() {
   const [colleges, setColleges] = useState<College[]>([]);
   const [careers, setCareers] = useState<Career[]>([]);
   const [interests, setInterests] = useState<Interest[]>([]);
+  const [countries, setCountries] = useState<CountryOption[]>([]);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [toDelete, setToDelete] = useState<User | null>(null);
 
@@ -82,14 +85,16 @@ export default function UsersPage() {
   useEffect(() => {
     const loadRefs = async () => {
       try {
-        const [col, car, int] = await Promise.all([
+        const [col, car, int, countryList] = await Promise.all([
           CollegesService.list({ page: 1, limit: 100 }),
           CareersService.list({ page: 1, limit: 100 }),
           InterestsService.list({ page: 1, limit: 100 }),
+          CountriesService.list(),
         ]);
         setColleges(col);
         setCareers(car);
         setInterests(int);
+        setCountries(countryList);
       } catch {
         // ignore
       }
@@ -270,13 +275,18 @@ export default function UsersPage() {
     },
   ];
 
+  const countryOptions = [
+    { label: "Todos", value: "" },
+    ...countries.map((c) => ({ label: c.name, value: c.value })),
+  ];
+
   return (
     <div>
       <FiltersPanel
         fields={[
           { name:'username', label:'Usuario', placeholder:'Buscar por usuario'},
           { name:'email', label:'Email', placeholder:'Buscar por email', type: 'email' },
-          { name:'countries', label:'País', type:'select', options: ['','Colombia','Chile','México','Argentina','España','Perú','Ecuador','Bolivia','Uruguay'].map(c=>({label: c || 'Todos', value: c ? c.toLowerCase() : ''})) },
+          { name:'countries', label:'País', type:'select', options: countryOptions },
           { name:'careers', label:'Carrera', type:'select', options: [{label:'Todas', value:''}, ...careers.map(c=>({label:c.name, value:c.id}))] },
           { name:'colleges', label:'Universidad', type:'select', options: [{label:'Todas', value:''}, ...colleges.map(c=>({label:c.name, value:c.id}))] },
           { name:'interests', label:'Interés', type:'select', options: [{label:'Todos', value:''}, ...interests.map(i=>({label:i.name, value:i.id}))] },
@@ -326,8 +336,8 @@ export default function UsersPage() {
                 className="w-full border rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Selecciona un país</option>
-                {['Colombia','Chile','México','Argentina','España','Perú','Ecuador','Bolivia','Uruguay'].map((c) => (
-                  <option key={c} value={c.toLowerCase()}>{c}</option>
+                {countries.map((c) => (
+                  <option key={c.code} value={c.value}>{c.name}</option>
                 ))}
               </select>
             </div>

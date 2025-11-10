@@ -56,3 +56,6 @@ pids
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 .env.test
 tables.txt
+users_202511092033.sql
+8tables.sql
+8tables.sqlZone.Identifier
