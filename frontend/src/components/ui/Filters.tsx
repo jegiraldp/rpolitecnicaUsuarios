@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { ChevronDown, ChevronUp, Filter } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
+import { PlugIcon } from "@/utils/plugins/plugicon";
 
 export interface FilterOption { label: string; value: string }
 export interface FilterField {
@@ -27,7 +28,7 @@ export default function FiltersPanel({
   onSearch,
   onClear,
 }: FiltersPanelProps) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const [openMulti, setOpenMulti] = useState<string | null>(null);
 
   return (
@@ -38,7 +39,7 @@ export default function FiltersPanel({
         onClick={() => setOpen(!open)}
       >
         <div className="flex items-center gap-2">
-          <Filter size={16} className="text-gray-600" />
+          <PlugIcon name="filter" size={16} className="text-gray-600" />
           <h3 className="font-medium text-gray-800">{title}</h3>
         </div>
         {open ? (

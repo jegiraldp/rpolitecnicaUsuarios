@@ -6,6 +6,7 @@ import Modal from "@/components/ui/Modal";
 import { useEffect } from "react";
 import { InterestsService } from "@/services/interests";
 import FiltersPanel, { type FilterField } from "@/components/ui/Filters";
+import { PlugIcon } from "@/utils/plugins/plugicon";
 
 export default function InterestsPage() {
   const [interests, setInterests] = useState<Interest[]>([
@@ -103,18 +104,20 @@ export default function InterestsPage() {
       id: "col_actions", // 👈 id obligatorio aquí
       header: () => <div className="text-right w-full">Acciones</div>,
       cell: ({ row }) => (
-        <div className="flex justify-end items-center gap-2">
+        <div className="flex justify-end items-center gap-1">
           <button
             onClick={() => handleEdit(row.original)}
-            className="text-blue-600 hover:text-blue-800"
+            className="p-2 rounded-md text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition-colors"
+            aria-label="Editar interés"
           >
-            ✏️
+            <PlugIcon name="edit" size={18} />
           </button>
           <button
             onClick={() => requestDelete(row.original)}
-            className="text-red-600 hover:text-red-800"
+            className="p-2 rounded-md text-red-600 hover:text-red-800 hover:bg-red-50 transition-colors"
+            aria-label="Eliminar interés"
           >
-            🗑️
+            <PlugIcon name="delete" size={18} />
           </button>
         </div>
       ),

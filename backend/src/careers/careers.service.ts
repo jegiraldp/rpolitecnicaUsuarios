@@ -83,8 +83,7 @@ export class CareersService {
     try {
       const existing = await this.careerRepository.findOne({ where: { id } });
       if (!existing) throw new NotFoundException('Career not found');
-      existing.deletedAt = new Date() as any;
-      return await this.careerRepository.save(existing);
+      return await this.careerRepository.remove(existing);
     } catch (error) {
       handleException(error, this.logger);
     }
@@ -97,4 +96,3 @@ export class CareersService {
     return count > 0;
   }
 }
-

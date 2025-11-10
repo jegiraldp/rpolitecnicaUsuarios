@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Table from "@/components/ui/table";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { User } from "@/types/User";
@@ -12,6 +12,7 @@ import { InterestsService } from "@/services/interests";
 import type { College } from "@/types/College";
 import type { Career } from "@/types/Career";
 import type { Interest } from "@/types/Interest";
+import { PlugIcon } from "@/utils/plugins/plugicon";
 
 const initials = (name: string) => {
   const parts = name.trim().split(/\s+/);
@@ -21,6 +22,26 @@ const initials = (name: string) => {
 
 const capitalize = (s?: string | null) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : "");
 
+type UserForm = {
+  username: string;
+  email: string;
+  country: string;
+  collegeId: string;
+  careerId: string;
+  interestIds: string[];
+  isActive: boolean;
+};
+
+const createEmptyForm = (): UserForm => ({
+  username: "",
+  email: "",
+  country: "",
+  collegeId: "",
+  careerId: "",
+  interestIds: [],
+  isActive: true,
+});
+
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
@@ -28,7 +49,7 @@ export default function UsersPage() {
   const [filters, setFilters] = useState<Record<string, string | string[]>>({ username:'', email:'', countries: '', colleges: '', careers: '', interests: '' });
   const [isOpen, setIsOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState({ username: "", email: "", country: "", collegeId: "", careerId: "", interestIds: [] as string[] });
+  const [form, setForm] = useState<UserForm>(() => createEmptyForm());
   const [colleges, setColleges] = useState<College[]>([]);
   const [careers, setCareers] = useState<Career[]>([]);
   const [interests, setInterests] = useState<Interest[]>([]);
@@ -78,7 +99,7 @@ export default function UsersPage() {
 
   const openCreate = () => {
     setEditingId(null);
-    setForm({ username: "", email: "", country: "", collegeId: "", careerId: "", interestIds: [] });
+    setForm(createEmptyForm());
     setIsOpen(true);
   };
 
@@ -91,6 +112,7 @@ export default function UsersPage() {
       collegeId: u.college?.id || "",
       careerId: u.career?.id || "",
       interestIds: (u.interests || []).map((i) => i.id),
+      isActive: u.isActive,
     });
     setIsOpen(true);
   };
@@ -100,24 +122,23 @@ export default function UsersPage() {
     try {
       setLoading(true);
       setError(null);
+      const basePayload = {
+        username: form.username.trim(),
+        email: form.email.trim(),
+        country: form.country.trim() || undefined,
+        collegeId: form.collegeId || undefined,
+        careerId: form.careerId || undefined,
+        interestIds: form.interestIds,
+      };
       if (editingId) {
         const updated = await UsersAPI.update(editingId, {
-          username: form.username.trim(),
-          email: form.email.trim(),
-          country: form.country.trim() || undefined,
-          collegeId: form.collegeId || undefined,
-          careerId: form.careerId || undefined,
-          interestIds: form.interestIds,
+          ...basePayload,
+          isActive: form.isActive,
         });
         setUsers((prev) => prev.map((u) => (u.id === updated.id ? (updated as unknown as User) : u)));
       } else {
         const created = await UsersAPI.create({
-          username: form.username.trim(),
-          email: form.email.trim(),
-          country: form.country.trim() || undefined,
-          collegeId: form.collegeId || undefined,
-          careerId: form.careerId || undefined,
-          interestIds: form.interestIds,
+          ...basePayload,
         });
         setUsers((prev) => [(created as unknown as User), ...prev]);
       }
@@ -229,9 +250,21 @@ export default function UsersPage() {
       id: "col_actions",
       header: () => <div className="text-right w-full">Acciones</div>,
       cell: ({ row }) => (
-        <div className="flex justify-end items-center gap-2">
-          <button onClick={() => handleEdit(row.original)} className="text-blue-600 hover:text-blue-800">✏️</button>
-          <button onClick={() => requestDelete(row.original)} className="text-red-600 hover:text-red-800">🗑️</button>
+        <div className="flex justify-end items-center gap-1">
+          <button
+            onClick={() => handleEdit(row.original)}
+            className="p-2 rounded-md text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition-colors"
+            aria-label="Editar usuario"
+          >
+            <PlugIcon name="edit" size={18} />
+          </button>
+          <button
+            onClick={() => requestDelete(row.original)}
+            className="p-2 rounded-md text-red-600 hover:text-red-800 hover:bg-red-50 transition-colors"
+            aria-label="Desactivar usuario"
+          >
+            <PlugIcon name="delete" size={18} />
+          </button>
         </div>
       ),
     },
@@ -324,6 +357,19 @@ export default function UsersPage() {
                 ))}
               </select>
             </div>
+            {editingId && (
+              <div className="md:col-span-2">
+                <label className="block text-sm text-gray-700 mb-1">Estado del usuario</label>
+                <select
+                  value={form.isActive ? "true" : "false"}
+                  onChange={(e) => setForm((f) => ({ ...f, isActive: e.target.value === "true" }))}
+                  className="w-full border rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="true">Activo</option>
+                  <option value="false">Inactivo</option>
+                </select>
+              </div>
+            )}
           </div>
           <div>
             <label className="block text-sm text-gray-700 mb-2">Intereses (Selecciona uno o más)</label>

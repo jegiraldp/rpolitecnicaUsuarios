@@ -5,6 +5,7 @@ export const mockInterestRepo = {
   merge: jest.fn((entity: any, dto: any) => ({ ...entity, ...dto })),
   find: jest.fn(),
   findOne: jest.fn(),
+  remove: jest.fn(),
   createQueryBuilder: jest.fn(() => ({
     where: jest.fn().mockReturnThis(),
     andWhere: jest.fn().mockReturnThis(),
@@ -13,4 +14,3 @@ export const mockInterestRepo = {
     getMany: jest.fn(),
   })),
 }
-

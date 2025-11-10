@@ -106,14 +106,16 @@ describe('CollegesService', () => {
     });
 
     describe('DELETE /colleges/:id', () => {
-        it('should soft delete a college', async () => {
+        it('should hard delete a college', async () => {
             const [anyCollege] = await collegeMother.createMany(1, { name: 'to-delete' });
             const res = await request(app.getHttpServer())
                 .delete(`/colleges/${anyCollege!.id}`)
                 .send();
             expect(res.status).toBe(200);
-            expect(res.body?.isActive).toBe(false);
-            expect(res.body?.deletedAt).toBeDefined();
+            expect(res.body?.id).toBe(anyCollege?.id);
+
+            const inDb = await repositories.collegeRepository.findOne({ where: { id: anyCollege!.id } });
+            expect(inDb).toBeNull();
         });
     });
 

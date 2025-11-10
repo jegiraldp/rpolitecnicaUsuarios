@@ -99,17 +99,15 @@ describe('CollegesService', () => {
      });
    })
 
-   describe('Remove colleges (soft delete)', () => {
-     it('should mark a college as inactive and set deletedAt', async () => {
+   describe('Remove colleges', () => {
+     it('should hard delete a college', async () => {
        const anyCollege = (await repositories.collegeRepository.find())[0];
        const removed = await services.collegeServices.remove(anyCollege.id);
        expect(removed).toBeDefined();
-       expect(removed?.isActive).toBe(false);
-       expect(removed?.deletedAt).toBeDefined();
+       expect(removed?.id).toBe(anyCollege.id);
 
        const inDb = await repositories.collegeRepository.findOne({ where: { id: anyCollege.id } });
-       expect(inDb?.isActive).toBe(false);
-       expect(inDb?.deletedAt).toBeDefined();
+       expect(inDb).toBeNull();
      });
 
      it('should throw NotFound when trying to remove a non-existing college', async () => {

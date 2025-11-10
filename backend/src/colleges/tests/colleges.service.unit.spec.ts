@@ -65,7 +65,7 @@ describe('CollegesService', () => {
       expect(response).toBeDefined();
       expect(Array.isArray(response)).toBe(true);
       expect(response).toHaveLength(2);
-      expect(response[0].name).toBe(items[0].name);
+      expect(response![0].name).toBe(items[0].name);
     })
 
     it('should return a college by id', async () => {
@@ -84,12 +84,18 @@ describe('CollegesService', () => {
         { id: 'id-1', name: 'engineering college' },
       ];
 
-      const qb = mockCollegeRepo.createQueryBuilder();
-      qb.getMany.mockResolvedValue(items);
+      const qb = {
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue(items),
+      };
+      mockCollegeRepo.createQueryBuilder.mockReturnValueOnce(qb as any);
 
       const response = await collegeService.findAll({ page: 1, limit: 10, name: 'engineer' } as any);
       expect(response).toHaveLength(1);
-      expect(response[0].name).toBe('engineering college');
+      expect(response![0].name).toBe('engineering college');
     });
 
     it('should filter colleges by id (exact)', async () => {
@@ -100,7 +106,7 @@ describe('CollegesService', () => {
 
       const response = await collegeService.findAll({ page: 1, limit: 10, id: 'uuid-1' } as any);
       expect(response).toHaveLength(1);
-      expect(response[0].id).toBe('uuid-1');
+      expect(response![0].id).toBe('uuid-1');
     });
   })
 
@@ -132,17 +138,16 @@ describe('CollegesService', () => {
     });
   })
 
-  describe('Remove College (soft delete)', () => {
-    it('should soft delete a college', async () => {
+  describe('Remove College', () => {
+    it('should hard delete a college', async () => {
       const existing: Partial<College> = { id: 'uuid-1', name: 'name', isActive: true } as any;
       mockCollegeRepo.findOne.mockResolvedValue(existing);
-      const saved = { ...existing, isActive: false, deletedAt: new Date() } as any;
-      mockCollegeRepo.save.mockResolvedValue(saved);
+      mockCollegeRepo.remove.mockResolvedValue(existing as College);
 
       const response = await collegeService.remove('uuid-1');
       expect(response).toBeDefined();
-      expect(response?.isActive).toBe(false);
-      expect(response?.deletedAt).toBeDefined();
+      expect(mockCollegeRepo.remove).toHaveBeenCalledWith(existing);
+      expect(response?.id).toBe('uuid-1');
     });
 
     it('should throw NotFound if college does not exist', async () => {

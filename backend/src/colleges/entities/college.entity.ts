@@ -21,9 +21,6 @@ export class College {
     })
     createdAt: Date;
 
-    @Column({ type: 'date', nullable: true })
-    deletedAt: Date;
-
     @BeforeInsert()
     @BeforeUpdate()
     beforeInsertOrUpdate() {

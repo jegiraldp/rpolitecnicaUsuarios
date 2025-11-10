@@ -62,10 +62,12 @@ describe('CareersService - INT', () => {
       expect(res?.name).toBe('new');
       expect(res?.updatedAt).toBeDefined();
     });
-    it('soft deletes by setting deletedAt', async () => {
+    it('hard deletes the record', async () => {
       const created = await services.careersService.create(CareerMother.dto({ name: 'to-del' }));
       const res = await services.careersService.remove(created!.id);
-      expect(res?.deletedAt).toBeDefined();
+      expect(res?.id).toBe(created?.id);
+      const inDb = await repositories.careerRepository.findOne({ where: { id: created!.id } });
+      expect(inDb).toBeNull();
     });
     it('throws NotFound on missing id', async () => {
       await expect(services.careersService.update('missing', { name: 'x' })).rejects.toThrowError(NotFoundException);
@@ -73,4 +75,3 @@ describe('CareersService - INT', () => {
     });
   });
 });
-

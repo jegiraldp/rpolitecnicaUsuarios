@@ -1,0 +1,10 @@
+.iconic:not(.original) {
+  font-style: normal;
+  line-height: 1em;
+}
+
+.iconic:not(.original) svg {
+  width: 1em;
+  height: 1em;
+  vertical-align: middle;
+}

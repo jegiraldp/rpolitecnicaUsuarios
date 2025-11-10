@@ -18,13 +18,9 @@ export class Interest {
   })
   createdAt: Date;
 
-  @Column({ type: 'date', nullable: true })
-  deletedAt: Date;
-
   @BeforeInsert()
   @BeforeUpdate()
   beforeInsertOrUpdate() {
     if (this.name) this.name = this.name.toLowerCase();
   }
 }
-

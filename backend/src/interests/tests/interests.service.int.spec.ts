@@ -62,10 +62,12 @@ describe('InterestsService - INT', () => {
       expect(res?.name).toBe('new');
       expect(res?.updatedAt).toBeDefined();
     });
-    it('soft deletes by setting deletedAt', async () => {
+    it('hard deletes the record', async () => {
       const created = await services.interestsService.create(InterestMother.dto({ name: 'to-del' }));
       const res = await services.interestsService.remove(created!.id);
-      expect(res?.deletedAt).toBeDefined();
+      expect(res?.id).toBe(created?.id);
+      const inDb = await repositories.interestRepository.findOne({ where: { id: created!.id } });
+      expect(inDb).toBeNull();
     });
     it('throws NotFound on missing id', async () => {
       await expect(services.interestsService.update('missing', { name: 'x' })).rejects.toThrowError(NotFoundException);
@@ -73,4 +75,3 @@ describe('InterestsService - INT', () => {
     });
   });
 });
-

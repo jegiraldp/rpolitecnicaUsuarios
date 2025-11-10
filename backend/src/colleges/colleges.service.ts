@@ -94,9 +94,7 @@ export class CollegesService {
       if (!existing) {
         throw new NotFoundException('College not found');
       }
-      existing.isActive = false;
-      existing.deletedAt = new Date() as any;
-      return await this.collegeRepository.save(existing);
+      return await this.collegeRepository.remove(existing);
     } catch (error) {
       handleException(error, this.logger);
     }

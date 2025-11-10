@@ -1,4 +1,6 @@
-import { Link, NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
+import { PlugIcon } from "@/utils/plugins/plugicon";
+import type { IconName } from "@/assets/icons";
 
 const titles: Record<string, string> = {
   users: "Gestión de usuarios",
@@ -7,13 +9,12 @@ const titles: Record<string, string> = {
   careers: "Gestión de carreras",
 };
 
-const labels: Record<string, string> = {
-  '': 'Inicio',
-  users: 'Usuarios',
-  interests: 'Intereses',
-  colleges: 'Universidades',
-  careers: 'Carreras',
-};
+const navItems: { to: string; label: string; icon: IconName }[] = [
+  { to: "/users", label: "Usuarios", icon: "navUsers" },
+  { to: "/colleges", label: "Universidades", icon: "navColleges" },
+  { to: "/interests", label: "Intereses", icon: "navInterests" },
+  { to: "/careers", label: "Carreras", icon: "navCareers" },
+] as const;
 
 export default function Navbar() {
   const location = useLocation();
@@ -31,55 +32,22 @@ export default function Navbar() {
 
       {/* DERECHA: botones de navegación */}
       <nav className="flex items-center gap-3">
-        <NavLink
-          to="/users"
-          className={({ isActive }) =>
-            `px-4 py-2 rounded-lg text-sm border transition-colors ${
-              isActive
-                ? "border-blue-500 text-blue-600 bg-blue-50 font-medium"
-                : "border-transparent text-gray-600 hover:bg-gray-100"
-            }`
-          }
-        >
-          Usuarios
-        </NavLink>
-
-        <NavLink
-          to="/colleges"
-          className={({ isActive }) =>
-            `px-4 py-2 rounded-lg text-sm border transition-colors ${
-              isActive
-                ? "border-blue-500 text-blue-600 bg-blue-50 font-medium"
-                : "border-transparent text-gray-600 hover:bg-gray-100"
-            }`
-          }
-        >
-          Universidades
-        </NavLink>
-        <NavLink
-          to="/interests"
-          className={({ isActive }) =>
-            `px-4 py-2 rounded-lg text-sm border transition-colors ${
-              isActive
-                ? "border-blue-500 text-blue-600 bg-blue-50 font-medium"
-                : "border-transparent text-gray-600 hover:bg-gray-100"
-            }`
-          }
-        >
-          Intereses
-        </NavLink>
-        <NavLink
-          to="/careers"
-          className={({ isActive }) =>
-            `px-4 py-2 rounded-lg text-sm border transition-colors ${
-              isActive
-                ? "border-blue-500 text-blue-600 bg-blue-50 font-medium"
-                : "border-transparent text-gray-600 hover:bg-gray-100"
-            }`
-          }
-        >
-          Carreras
-        </NavLink>
+        {navItems.map((item) => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            className={({ isActive }) =>
+              `px-4 py-2 rounded-lg text-sm border transition-colors flex items-center gap-2 ${
+                isActive
+                  ? "border-blue-500 text-blue-600 bg-blue-50 font-medium"
+                  : "border-transparent text-gray-600 hover:bg-gray-100"
+              }`
+            }
+          >
+            <PlugIcon name={item.icon} aria-hidden size={18} />
+            {item.label}
+          </NavLink>
+        ))}
       </nav>
     </header>
   );

@@ -87,12 +87,14 @@ describe('Careers - E2E', () => {
   });
 
   describe('DELETE /careers/:id', () => {
-    it('soft deletes by setting deletedAt', async () => {
+    it('hard deletes the career', async () => {
       const [created] = await careerMother.createMany(1, { name: 'to-del' } as any);
       const res = await request(app.getHttpServer()).delete(`/careers/${created!.id}`);
       expect(res.status).toBe(200);
-      expect(res.body?.deletedAt).toBeDefined();
+      expect(res.body?.id).toBe(created?.id);
+
+      const inDb = await repositories.careerRepository.findOne({ where: { id: created!.id } });
+      expect(inDb).toBeNull();
     });
   });
 });
-

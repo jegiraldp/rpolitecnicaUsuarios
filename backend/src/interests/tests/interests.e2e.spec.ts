@@ -83,11 +83,14 @@ describe('Interests - E2E', () => {
   });
 
   describe('DELETE /interests/:id', () => {
-    it('soft deletes by setting deletedAt', async () => {
+    it('hard deletes the interest', async () => {
       const [created] = await interestMother.createMany(1, { name: 'to-del' } as any);
       const res = await request(app.getHttpServer()).delete(`/interests/${created!.id}`);
       expect(res.status).toBe(200);
-      expect(res.body?.deletedAt).toBeDefined();
+      expect(res.body?.id).toBe(created?.id);
+
+      const inDb = await repositories.interestRepository.findOne({ where: { id: created!.id } });
+      expect(inDb).toBeNull();
     });
   });
 });

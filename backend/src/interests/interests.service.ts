@@ -83,8 +83,7 @@ export class InterestsService {
     try {
       const existing = await this.interestRepository.findOne({ where: { id } });
       if (!existing) throw new NotFoundException('Interest not found');
-      existing.deletedAt = new Date() as any;
-      return await this.interestRepository.save(existing);
+      return await this.interestRepository.remove(existing);
     } catch (error) {
       handleException(error, this.logger);
     }
@@ -97,4 +96,3 @@ export class InterestsService {
     return count > 0;
   }
 }
-

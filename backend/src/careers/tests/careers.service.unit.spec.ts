@@ -4,7 +4,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { CareersService } from '../careers.service';
 import { Career } from '../entities/career.entity';
-import { mockCareerRepo } from './mocks/career.mocks.ts';
+import { mockCareerRepo } from './mocks/career.mocks';
 import { CareerMother } from './careers.mother';
 
 describe('CareersService - Unit', () => {
@@ -54,8 +54,14 @@ describe('CareersService - Unit', () => {
     });
     it('filter by name contains', async () => {
       const items = [ { id: 'c1', name: 'career name' } ];
-      const qb = mockCareerRepo.createQueryBuilder();
-      qb.getMany.mockResolvedValue(items);
+      const qb = {
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue(items),
+      };
+      mockCareerRepo.createQueryBuilder.mockReturnValueOnce(qb as any);
       const res = await service.findAll({ page: 1, limit: 10, name: 'name' } as any);
       expect(res).toHaveLength(1);
     });
@@ -80,12 +86,13 @@ describe('CareersService - Unit', () => {
       mockCareerRepo.count.mockResolvedValue(1);
       await expect(service.update('cid', { name: 'dup' })).rejects.toThrowError(BadRequestException);
     });
-    it('soft deletes by setting deletedAt', async () => {
-      mockCareerRepo.findOne.mockResolvedValue({ id: 'cid', name: 'old' });
-      mockCareerRepo.save.mockImplementation(async (arg) => arg);
+    it('hard deletes the record', async () => {
+      const existing = { id: 'cid', name: 'old' };
+      mockCareerRepo.findOne.mockResolvedValue(existing);
+      mockCareerRepo.remove.mockResolvedValue(existing);
       const res = await service.remove('cid');
-      expect(res?.deletedAt).toBeDefined();
+      expect(mockCareerRepo.remove).toHaveBeenCalledWith(existing);
+      expect(res?.id).toBe('cid');
     });
   });
 });
-

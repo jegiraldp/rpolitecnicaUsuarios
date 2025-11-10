@@ -54,8 +54,14 @@ describe('InterestsService - Unit', () => {
     });
     it('filter by name contains', async () => {
       const items = [ { id: 'i1', name: 'interest name' } ];
-      const qb = mockInterestRepo.createQueryBuilder();
-      qb.getMany.mockResolvedValue(items);
+      const qb = {
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue(items),
+      };
+      mockInterestRepo.createQueryBuilder.mockReturnValueOnce(qb as any);
       const res = await service.findAll({ page: 1, limit: 10, name: 'name' } as any);
       expect(res).toHaveLength(1);
     });
@@ -80,12 +86,13 @@ describe('InterestsService - Unit', () => {
       mockInterestRepo.count.mockResolvedValue(1);
       await expect(service.update('iid', { name: 'dup' })).rejects.toThrowError(BadRequestException);
     });
-    it('soft deletes by setting deletedAt', async () => {
-      mockInterestRepo.findOne.mockResolvedValue({ id: 'iid', name: 'old' });
-      mockInterestRepo.save.mockImplementation(async (arg) => arg);
+    it('performs a hard delete', async () => {
+      const existing = { id: 'iid', name: 'old' };
+      mockInterestRepo.findOne.mockResolvedValue(existing);
+      mockInterestRepo.remove.mockResolvedValue(existing);
       const res = await service.remove('iid');
-      expect(res?.deletedAt).toBeDefined();
+      expect(mockInterestRepo.remove).toHaveBeenCalledWith(existing);
+      expect(res?.id).toBe('iid');
     });
   });
 });
-
