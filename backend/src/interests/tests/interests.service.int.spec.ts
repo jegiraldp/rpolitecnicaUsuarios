@@ -45,13 +45,14 @@ describe('InterestsService - INT', () => {
       await services.interestsService.create(InterestMother.dto({ name: 'a1' }));
       await services.interestsService.create(InterestMother.dto({ name: 'a2' }));
       const res = await services.interestsService.findAll({ page: 1, limit: 1 } as any);
-      expect(Array.isArray(res)).toBe(true);
-      expect(res.length).toBe(1);
+      expect(res?.data.length).toBe(1);
+      expect(res?.meta.total).toBeGreaterThanOrEqual(2);
     });
     it('filter by name contains', async () => {
       await services.interestsService.create(InterestMother.dto({ name: 'biology' }));
       const res = await services.interestsService.findAll({ page: 1, limit: 10, name: 'bio' } as any);
-      expect(res.length).toBeGreaterThanOrEqual(1);
+      expect(res?.data.length).toBeGreaterThanOrEqual(1);
+      expect(res?.meta.total).toBeGreaterThanOrEqual(1);
     });
   });
 

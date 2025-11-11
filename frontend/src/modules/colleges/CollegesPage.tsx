@@ -7,18 +7,33 @@ import FiltersPanel, { type FilterField } from "@/components/ui/Filters";
 import { CollegesService } from "@/services/colleges";
 import { PlugIcon } from "@/utils/plugins/plugicon";
 
+type CollegeFiltersState = { name: string };
+
 export default function CollegesPage() {
   const [colleges, setColleges] = useState<College[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [filters, setFilters] = useState<Record<string,string>>({ name: '' });
+  const [filters, setFilters] = useState<CollegeFiltersState>({ name: "" });
+  const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0 });
 
-  const load = async () => {
+  const load = async (options?: { page?: number; limit?: number; filtersOverride?: CollegeFiltersState }) => {
+      const page = options?.page ?? pagination.page;
+      const limit = options?.limit ?? pagination.limit;
+      const activeFilters = options?.filtersOverride ?? filters;
       try {
         setLoading(true);
         setError(null);
-        const data = await CollegesService.list({ page: 1, limit: 10, name: filters.name || undefined });
-        setColleges(data);
+        const response = await CollegesService.list({
+          page,
+          limit,
+          name: activeFilters.name || undefined,
+        });
+        setColleges(response.data);
+        setPagination({
+          page: response.meta.page,
+          limit: response.meta.limit,
+          total: response.meta.total,
+        });
       } catch (e: any) {
         setError(e?.message || "Error cargando universidades");
       } finally {
@@ -58,7 +73,7 @@ export default function CollegesPage() {
       setLoading(true);
       setError(null);
       await CollegesService.remove(toDelete.id);
-      setColleges((prev) => prev.filter((i) => i.id !== toDelete.id));
+      await load();
       setConfirmOpen(false);
       setToDelete(null);
     } catch (e: any) {
@@ -73,13 +88,14 @@ export default function CollegesPage() {
     try {
       setLoading(true);
       setError(null);
+      let targetPage = pagination.page;
       if (isEditing && editingId) {
-        const updated = await CollegesService.update(editingId, { name: name.trim() });
-        setColleges((prev) => prev.map((i) => (i.id === updated.id ? updated : i)));
+        await CollegesService.update(editingId, { name: name.trim() });
       } else {
-        const created = await CollegesService.create({ name: name.trim() });
-        setColleges((prev) => [created, ...prev]);
+        await CollegesService.create({ name: name.trim() });
+        targetPage = 1;
       }
+      await load({ page: targetPage });
       setIsOpen(false);
     } catch (e: any) {
       setError(e?.message || "Error guardando universidad");
@@ -125,8 +141,12 @@ export default function CollegesPage() {
         fields={[{ name:'name', label:'Nombre', placeholder:'Buscar por nombre'}] as FilterField[]}
         values={filters}
         onChange={(n,v)=> setFilters((f)=> ({...f,[n]:v}))}
-        onSearch={load}
-        onClear={()=>{ setFilters({ name: ''}); load(); }}
+        onSearch={() => load({ page: 1 })}
+        onClear={()=>{
+          const cleared = { name: "" };
+          setFilters(cleared);
+          load({ page: 1, filtersOverride: cleared });
+        }}
       />
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-semibold">Universidades</h2>
@@ -136,7 +156,15 @@ export default function CollegesPage() {
       </div>
 
       {error && <div className="mb-2 text-sm text-red-600">{error}</div>}
-      <Table<College> data={colleges} columns={columns} />
+      <Table<College>
+        data={colleges}
+        columns={columns}
+        totalItems={pagination.total}
+        pageIndex={pagination.page - 1}
+        pageSize={pagination.limit}
+        onPageChange={(pageIndex) => load({ page: pageIndex + 1 })}
+        onPageSizeChange={(size) => load({ page: 1, limit: size })}
+      />
 
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title={isEditing ? "Editar universidad" : "Nueva universidad"} size="sm">
         <div className="space-y-4">

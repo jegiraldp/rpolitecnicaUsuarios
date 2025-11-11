@@ -12,6 +12,7 @@ export const mockUserRepo = {
     skip: jest.fn().mockReturnThis(),
     take: jest.fn().mockReturnThis(),
     getMany: jest.fn(),
+    getManyAndCount: jest.fn(),
   })),
 };
 
@@ -26,4 +27,3 @@ export const mockCareerRepo = {
 export const mockInterestRepo = {
   find: jest.fn(),
 };
-

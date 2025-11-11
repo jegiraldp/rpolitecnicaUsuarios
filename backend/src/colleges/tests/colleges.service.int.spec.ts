@@ -48,9 +48,10 @@ describe('CollegesService', () => {
      it('should return all colleges', async () => {
        const list = await services.collegeServices.findAll({ page: 1, limit: 10 } as any);
        expect(list).toBeDefined();
-       expect(Array.isArray(list)).toBe(true);
+       expect(Array.isArray(list?.data)).toBe(true);
        // seeded with 5 by SeedService
-       expect(list?.length).toBe(5);
+       expect(list?.data.length).toBe(5);
+       expect(list?.meta.total).toBeGreaterThanOrEqual(5);
      });
 
      it('should return one college by id', async () => {
@@ -64,16 +65,16 @@ describe('CollegesService', () => {
      it('should filter colleges by name (contains)', async () => {
        const list = await services.collegeServices.findAll({ page: 1, limit: 10, name: 'college-1' } as any);
        expect(list).toBeDefined();
-       expect(Array.isArray(list)).toBe(true);
-       expect(list?.length).toBe(1);
-       expect(list[0].name).toBe('college-1');
+       expect(Array.isArray(list?.data)).toBe(true);
+       expect(list?.data.length).toBe(1);
+       expect(list?.data[0].name).toBe('college-1');
      });
 
      it('should filter colleges by id (exact)', async () => {
        const anyCollege2 = (await repositories.collegeRepository.find())[0];
        const list = await services.collegeServices.findAll({ page: 1, limit: 10, id: anyCollege2.id } as any);
-       expect(list).toHaveLength(1);
-       expect(list[0].id).toBe(anyCollege2.id);
+       expect(list?.data).toHaveLength(1);
+       expect(list?.data[0].id).toBe(anyCollege2.id);
      });
    })
 

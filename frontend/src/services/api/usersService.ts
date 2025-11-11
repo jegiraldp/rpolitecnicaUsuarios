@@ -1,4 +1,5 @@
 import { http } from "./http";
+import type { PaginatedResponse } from "@/types/common";
 
 export interface UserDTO {
   id: string;
@@ -17,11 +18,14 @@ export interface UserFilters {
   email?: string;
   country?: string;
   isActive?: boolean;
+  collegeId?: string;
+  careerId?: string;
+  interestId?: string;
 }
 
 export const UsersAPI = {
-  async list(filters?: UserFilters): Promise<UserDTO[]> {
-    return http<UserDTO[]>({ path: "/users", query: filters });
+  async list(filters?: UserFilters): Promise<PaginatedResponse<UserDTO>> {
+    return http<PaginatedResponse<UserDTO>>({ path: "/users", query: filters });
   },
   async get(id: string): Promise<UserDTO> {
     return http<UserDTO>({ path: `/users/${id}` });

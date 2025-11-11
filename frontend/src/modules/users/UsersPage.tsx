@@ -48,7 +48,15 @@ export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [filters, setFilters] = useState<Record<string, string | string[]>>({ username:'', email:'', countries: '', colleges: '', careers: '', interests: '' });
+  const [filters, setFilters] = useState<Record<string, string | string[]>>({
+    username: "",
+    email: "",
+    countries: "",
+    colleges: "",
+    careers: "",
+    interests: "",
+  });
+  const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0 });
   const [isOpen, setIsOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<UserForm>(() => createEmptyForm());
@@ -59,21 +67,29 @@ export default function UsersPage() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [toDelete, setToDelete] = useState<User | null>(null);
 
-  const load = async () => {
+  const load = async (options?: { page?: number; limit?: number; filtersOverride?: Record<string, string | string[]> }) => {
+      const page = options?.page ?? pagination.page;
+      const limit = options?.limit ?? pagination.limit;
+      const activeFilters = options?.filtersOverride ?? filters;
       try {
         setLoading(true);
         setError(null);
-        const data = await UsersService.list({
-          page: 1,
-          limit: 10,
-          username: (filters.username as string) || undefined,
-          email: (filters.email as string) || undefined,
-          country: (filters.countries as string) || undefined,
-          collegeId: (filters.colleges as string) || undefined,
-          careerId: (filters.careers as string) || undefined,
-          interestId: (filters.interests as string) || undefined,
-        } as any);
-        setUsers(data);
+        const response = await UsersService.list({
+          page,
+          limit,
+          username: (activeFilters.username as string) || undefined,
+          email: (activeFilters.email as string) || undefined,
+          country: (activeFilters.countries as string) || undefined,
+          collegeId: (activeFilters.colleges as string) || undefined,
+          careerId: (activeFilters.careers as string) || undefined,
+          interestId: (activeFilters.interests as string) || undefined,
+        });
+        setUsers(response.data);
+        setPagination({
+          page: response.meta.page,
+          limit: response.meta.limit,
+          total: response.meta.total,
+        });
       } catch (e: any) {
         setError(e?.message || "Error cargando usuarios");
       } finally {
@@ -91,9 +107,9 @@ export default function UsersPage() {
           InterestsService.list({ page: 1, limit: 100 }),
           CountriesService.list(),
         ]);
-        setColleges(col);
-        setCareers(car);
-        setInterests(int);
+        setColleges(col.data);
+        setCareers(car.data);
+        setInterests(int.data);
         setCountries(countryList);
       } catch {
         // ignore
@@ -136,16 +152,16 @@ export default function UsersPage() {
         interestIds: form.interestIds,
       };
       if (editingId) {
-        const updated = await UsersAPI.update(editingId, {
+        await UsersAPI.update(editingId, {
           ...basePayload,
           isActive: form.isActive,
         });
-        setUsers((prev) => prev.map((u) => (u.id === updated.id ? (updated as unknown as User) : u)));
+        await load();
       } else {
-        const created = await UsersAPI.create({
+        await UsersAPI.create({
           ...basePayload,
         });
-        setUsers((prev) => [(created as unknown as User), ...prev]);
+        await load({ page: 1 });
       }
       setIsOpen(false);
     } catch (e: any) {
@@ -166,8 +182,8 @@ export default function UsersPage() {
       setLoading(true);
       setError(null);
       // Users do not have hard delete; perform deactivate
-      const deactivated = await UsersAPI.deactivate(toDelete.id);
-      setUsers((prev) => prev.map((x) => (x.id === toDelete.id ? (deactivated as unknown as User) : x)));
+      await UsersAPI.deactivate(toDelete.id);
+      await load();
       setConfirmOpen(false);
       setToDelete(null);
     } catch (e: any) {
@@ -293,8 +309,12 @@ export default function UsersPage() {
         ] as FilterField[]}
         values={filters}
         onChange={(n,v)=> setFilters((f)=> ({...f,[n]:v}))}
-        onSearch={load}
-        onClear={()=>{ setFilters({ username:'', email:'', countries: '', colleges: '', careers: '', interests: ''}); load(); }}
+        onSearch={() => load({ page: 1 })}
+        onClear={()=>{
+          const cleared = { username:'', email:'', countries: '', colleges: '', careers: '', interests: '' };
+          setFilters(cleared);
+          load({ page: 1, filtersOverride: cleared });
+        }}
       />
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-semibold">Usuarios</h2>
@@ -304,7 +324,15 @@ export default function UsersPage() {
       </div>
 
       {error && <div className="mb-2 text-sm text-red-600">{error}</div>}
-      <Table<User> data={users} columns={columns} />
+      <Table<User>
+        data={users}
+        columns={columns}
+        totalItems={pagination.total}
+        pageIndex={pagination.page - 1}
+        pageSize={pagination.limit}
+        onPageChange={(pageIndex) => load({ page: pageIndex + 1 })}
+        onPageSizeChange={(size) => load({ page: 1, limit: size })}
+      />
 
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title={editingId ? "Editar usuario" : "Nuevo usuario"} size="lg">
         <div className="space-y-4">

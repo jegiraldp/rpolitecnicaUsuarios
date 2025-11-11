@@ -1,12 +1,17 @@
 import { USE_MOCK } from "./config";
 import type { Interest } from "@/types/Interest";
+import type { PaginatedResponse } from "@/types/common";
 import { InterestsAPI, type InterestFilters } from "./api/interestsService";
+import { buildMockPaginatedResponse } from "./pagination";
 
 export const InterestsService = {
-  async list(filters?: InterestFilters): Promise<Interest[]> {
+  async list(filters?: InterestFilters): Promise<PaginatedResponse<Interest>> {
     if (USE_MOCK) {
       const data = await import("./mock/interests.json");
-      return data.default as Interest[];
+      return buildMockPaginatedResponse(data.default as Interest[], {
+        page: filters?.page,
+        limit: filters?.limit,
+      });
     }
     return InterestsAPI.list(filters);
   },

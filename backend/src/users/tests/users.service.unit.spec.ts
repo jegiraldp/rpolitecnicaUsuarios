@@ -49,10 +49,10 @@ describe('UsersService - Unit', () => {
     it('findAll with filters', async () => {
       const items = [ { id: 'u1', username: 'john', email: 'john@example.com' } ];
       const qb = mockUserRepo.createQueryBuilder();
-      qb.getMany.mockResolvedValue(items);
+      qb.getManyAndCount.mockResolvedValue([items, items.length]);
       const res = await service.findAll({ page: 1, limit: 10, username: 'jo' } as any);
-      expect(Array.isArray(res)).toBe(true);
-      expect(res).toHaveLength(1);
+      expect(res?.data).toHaveLength(1);
+      expect(res?.meta.total).toBe(1);
     });
     it('findOne by id', async () => {
       const item = { id: 'uid', username: 'john' } as any;
@@ -84,4 +84,3 @@ describe('UsersService - Unit', () => {
     });
   });
 });
-

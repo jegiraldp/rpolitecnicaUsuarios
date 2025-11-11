@@ -58,14 +58,14 @@ describe('CollegesService', () => {
         { id: 'id-1', name: 'eng college' },
         { id: 'id-2', name: 'arts college' },
       ];
-      mockCollegeRepo.find.mockResolvedValue(items);
+      mockCollegeRepo.findAndCount.mockResolvedValue([items, items.length]);
 
       const response = await collegeService.findAll({ page: 1, limit: 10 } as any);
 
       expect(response).toBeDefined();
-      expect(Array.isArray(response)).toBe(true);
-      expect(response).toHaveLength(2);
-      expect(response![0].name).toBe(items[0].name);
+      expect(response?.data).toHaveLength(2);
+      expect(response?.meta.total).toBe(2);
+      expect(response?.data[0].name).toBe(items[0].name);
     })
 
     it('should return a college by id', async () => {
@@ -89,24 +89,24 @@ describe('CollegesService', () => {
         andWhere: jest.fn().mockReturnThis(),
         skip: jest.fn().mockReturnThis(),
         take: jest.fn().mockReturnThis(),
-        getMany: jest.fn().mockResolvedValue(items),
+        getManyAndCount: jest.fn().mockResolvedValue([items, items.length]),
       };
       mockCollegeRepo.createQueryBuilder.mockReturnValueOnce(qb as any);
 
       const response = await collegeService.findAll({ page: 1, limit: 10, name: 'engineer' } as any);
-      expect(response).toHaveLength(1);
-      expect(response![0].name).toBe('engineering college');
+      expect(response?.data).toHaveLength(1);
+      expect(response?.data[0].name).toBe('engineering college');
     });
 
     it('should filter colleges by id (exact)', async () => {
       const items = [
         { id: 'uuid-1', name: 'arts college' },
       ];
-      mockCollegeRepo.find.mockResolvedValue(items);
+      mockCollegeRepo.findAndCount.mockResolvedValue([items, items.length]);
 
       const response = await collegeService.findAll({ page: 1, limit: 10, id: 'uuid-1' } as any);
-      expect(response).toHaveLength(1);
-      expect(response![0].id).toBe('uuid-1');
+      expect(response?.data).toHaveLength(1);
+      expect(response?.data[0].id).toBe('uuid-1');
     });
   })
 

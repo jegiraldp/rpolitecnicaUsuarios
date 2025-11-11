@@ -1,4 +1,5 @@
 import { http } from "./http";
+import type { PaginatedResponse } from "@/types/common";
 
 export interface CrudFilters {
   page?: number;
@@ -7,7 +8,7 @@ export interface CrudFilters {
 }
 
 export interface CrudApi<TModel, TCreate = Partial<TModel>, TUpdate = Partial<TModel>> {
-  list: (filters?: CrudFilters) => Promise<TModel[]>;
+  list: (filters?: CrudFilters) => Promise<PaginatedResponse<TModel>>;
   get: (id: string) => Promise<TModel>;
   create: (dto: TCreate) => Promise<TModel>;
   update: (id: string, dto: TUpdate) => Promise<TModel>;
@@ -21,7 +22,7 @@ export function createCrudApi<TModel, TCreate = Partial<TModel>, TUpdate = Parti
 
   return {
     async list(filters) {
-      return http<TModel[]>({ path, query: filters });
+      return http<PaginatedResponse<TModel>>({ path, query: filters });
     },
     async get(id: string) {
       return http<TModel>({ path: `${path}/${id}` });
@@ -37,4 +38,3 @@ export function createCrudApi<TModel, TCreate = Partial<TModel>, TUpdate = Parti
     },
   };
 }
-

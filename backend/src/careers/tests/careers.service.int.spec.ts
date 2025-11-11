@@ -45,13 +45,14 @@ describe('CareersService - INT', () => {
       await services.careersService.create(CareerMother.dto({ name: 'a1' }));
       await services.careersService.create(CareerMother.dto({ name: 'a2' }));
       const res = await services.careersService.findAll({ page: 1, limit: 1 } as any);
-      expect(Array.isArray(res)).toBe(true);
-      expect(res.length).toBe(1);
+      expect(res?.data.length).toBe(1);
+      expect(res?.meta.total).toBeGreaterThanOrEqual(2);
     });
     it('filter by name contains', async () => {
       await services.careersService.create(CareerMother.dto({ name: 'biology' }));
       const res = await services.careersService.findAll({ page: 1, limit: 10, name: 'bio' } as any);
-      expect(res.length).toBeGreaterThanOrEqual(1);
+      expect(res?.data.length).toBeGreaterThanOrEqual(1);
+      expect(res?.meta.total).toBeGreaterThanOrEqual(1);
     });
   });
 

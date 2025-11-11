@@ -1,14 +1,19 @@
 import { USE_MOCK } from "./config";
 import type { User } from "@/types/User";
+import type { PaginatedResponse } from "@/types/common";
 import { UsersAPI, type UserFilters } from "./api/usersService";
+import { buildMockPaginatedResponse } from "./pagination";
 
 export const UsersService = {
-  async list(filters?: UserFilters): Promise<User[]> {
+  async list(filters?: UserFilters): Promise<PaginatedResponse<User>> {
     if (USE_MOCK) {
       const data = await import("./mock/users.json");
-      return data.default as User[];
+      return buildMockPaginatedResponse(data.default as User[], {
+        page: filters?.page,
+        limit: filters?.limit,
+      });
     }
-    return UsersAPI.list(filters) as unknown as User[];
+    return UsersAPI.list(filters) as unknown as PaginatedResponse<User>;
   },
   async get(id: string): Promise<User> {
     if (USE_MOCK) {
@@ -21,4 +26,3 @@ export const UsersService = {
     return (await UsersAPI.get(id)) as unknown as User;
   },
 }
-

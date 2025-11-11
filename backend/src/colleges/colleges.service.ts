@@ -6,6 +6,7 @@ import { College } from './entities/college.entity';
 import { Not, Repository } from 'typeorm';
 import { handleException } from '../common/handleErrors';
 import { FindCollegesDto } from './dto/find-colleges.dto';
+import { PaginatedResult } from '../common/dto/paginated-result.dto';
 
 @Injectable()
 export class CollegesService {
@@ -27,7 +28,7 @@ export class CollegesService {
     }
   }
 
-  async findAll(filters?: FindCollegesDto): Promise<College[] | undefined> {
+  async findAll(filters?: FindCollegesDto): Promise<PaginatedResult<College> | undefined> {
     try {
       const page = Math.max(1, filters?.page ?? 1);
       const limitRaw = filters?.limit ?? 10;
@@ -37,17 +38,36 @@ export class CollegesService {
       if (filters?.id) where.id = String(filters.id);
       if (filters?.name) where.name = filters.name.toLowerCase();
 
+      let data: College[] = [];
+      let total = 0;
+
       if (filters?.name) {
-        return await this.collegeRepository
+        const qb = this.collegeRepository
           .createQueryBuilder('college')
           .where(where.id ? 'college.id = :id' : '1=1', where.id ? { id: where.id } : {})
           .andWhere('LOWER(college.name) LIKE :name', { name: `%${filters.name.toLowerCase()}%` })
           .skip(skip)
-          .take(take)
-          .getMany();
+          .take(take);
+        const [items, count] = await qb.getManyAndCount();
+        data = items;
+        total = count;
+      } else {
+        const [items, count] = await this.collegeRepository.findAndCount({ where, skip, take });
+        data = items;
+        total = count;
       }
 
-      return await this.collegeRepository.find({ where, skip, take });
+      const totalPages = Math.max(1, Math.ceil(total / take));
+
+      return {
+        data,
+        meta: {
+          total,
+          page,
+          limit: take,
+          totalPages,
+        },
+      };
     } catch (error) {
       handleException(error, this.logger);
     }

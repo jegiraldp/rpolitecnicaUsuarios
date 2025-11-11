@@ -6,6 +6,7 @@ import { CreateInterestDto } from './dto/create-interest.dto';
 import { UpdateInterestDto } from './dto/update-interest.dto';
 import { FindInterestsDto } from './dto/find-interests.dto';
 import { handleException } from '../common/handleErrors';
+import { PaginatedResult } from '../common/dto/paginated-result.dto';
 
 @Injectable()
 export class InterestsService {
@@ -26,7 +27,7 @@ export class InterestsService {
     }
   }
 
-  async findAll(filters?: FindInterestsDto): Promise<Interest[] | undefined | null> {
+  async findAll(filters?: FindInterestsDto): Promise<PaginatedResult<Interest> | undefined | null> {
     try {
       const page = Math.max(1, filters?.page ?? 1);
       const limitRaw = filters?.limit ?? 10;
@@ -37,17 +38,37 @@ export class InterestsService {
       if (filters?.id) where.id = String(filters.id);
       if (filters?.name) where.name = filters.name.toLowerCase();
 
+      let data: Interest[] = [];
+      let total = 0;
+
       if (filters?.name) {
-        return await this.interestRepository
+        const qb = this.interestRepository
           .createQueryBuilder('interest')
           .where(where.id ? 'interest.id = :id' : '1=1', where.id ? { id: where.id } : {})
           .andWhere('LOWER(interest.name) LIKE :name', { name: `%${filters.name.toLowerCase()}%` })
           .skip(skip)
-          .take(take)
-          .getMany();
+          .take(take);
+
+        const [items, count] = await qb.getManyAndCount();
+        data = items;
+        total = count;
+      } else {
+        const [items, count] = await this.interestRepository.findAndCount({ where, skip, take });
+        data = items;
+        total = count;
       }
 
-      return await this.interestRepository.find({ where, skip, take });
+      const totalPages = Math.max(1, Math.ceil(total / take));
+
+      return {
+        data,
+        meta: {
+          total,
+          page,
+          limit: take,
+          totalPages,
+        },
+      };
     } catch (error) {
       handleException(error, this.logger);
     }

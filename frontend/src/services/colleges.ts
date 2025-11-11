@@ -1,12 +1,17 @@
 import { USE_MOCK } from "./config";
 import type { College } from "@/types/College";
+import type { PaginatedResponse } from "@/types/common";
 import { CollegesAPI, type CollegeFilters } from "./api/collegesService";
+import { buildMockPaginatedResponse } from "./pagination";
 
 export const CollegesService = {
-  async list(filters?: CollegeFilters): Promise<College[]> {
+  async list(filters?: CollegeFilters): Promise<PaginatedResponse<College>> {
     if (USE_MOCK) {
       const data = await import("./mock/colleges.json");
-      return data.default as College[];
+      return buildMockPaginatedResponse(data.default as College[], {
+        page: filters?.page,
+        limit: filters?.limit,
+      });
     }
     return CollegesAPI.list(filters);
   },
@@ -39,4 +44,3 @@ export const CollegesService = {
     return CollegesAPI.remove(id);
   },
 };
-

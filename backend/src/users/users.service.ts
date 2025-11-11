@@ -9,6 +9,7 @@ import { handleException } from '../common/handleErrors';
 import { College } from '../colleges/entities/college.entity';
 import { Career } from '../careers/entities/career.entity';
 import { Interest } from '../interests/entities/interest.entity';
+import { PaginatedResult } from '../common/dto/paginated-result.dto';
 
 @Injectable()
 export class UsersService {
@@ -59,7 +60,7 @@ export class UsersService {
     }
   }
 
-  async findAll(filters?: FindUsersDto): Promise<User[] | undefined> {
+  async findAll(filters?: FindUsersDto): Promise<PaginatedResult<User> | undefined> {
     try {
       const page = Math.max(1, filters?.page ?? 1);
       const limitRaw = filters?.limit ?? 10;
@@ -81,7 +82,19 @@ export class UsersService {
       if (filters?.careerId) qb.andWhere('career.id = :careerId', { careerId: filters.careerId });
       if (filters?.interestId) qb.andWhere('interest.id = :interestId', { interestId: filters.interestId });
 
-      return await qb.skip(skip).take(take).getMany();
+      const [items, total] = await qb.skip(skip).take(take).getManyAndCount();
+
+      const totalPages = Math.max(1, Math.ceil(total / take));
+
+      return {
+        data: items,
+        meta: {
+          total,
+          page,
+          limit: take,
+          totalPages,
+        },
+      };
     } catch (error) {
       handleException(error, this.logger);
     }

@@ -74,8 +74,8 @@ describe('UsersService - INT', () => {
       await services.usersService.create(UserMother.dto({ username: 'alice', email: 'alice@example.com' }));
       await services.usersService.create(UserMother.dto({ username: 'bob', email: 'bob@example.com' }));
       const res = await services.usersService.findAll({ page: 1, limit: 1, username: 'a' } as any);
-      expect(Array.isArray(res)).toBe(true);
-      expect(res.length).toBe(1);
+      expect(res?.data.length).toBe(1);
+      expect(res?.meta.total).toBeGreaterThanOrEqual(1);
     });
     it('findOne by id', async () => {
       const created = await services.usersService.create(UserMother.dto({ username: 'cid', email: 'cid@example.com' }));
@@ -108,4 +108,3 @@ describe('UsersService - INT', () => {
     });
   });
 });
-

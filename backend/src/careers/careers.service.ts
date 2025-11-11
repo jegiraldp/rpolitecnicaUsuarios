@@ -6,6 +6,7 @@ import { CreateCareerDto } from './dto/create-career.dto';
 import { UpdateCareerDto } from './dto/update-career.dto';
 import { FindCareersDto } from './dto/find-careers.dto';
 import { handleException } from '../common/handleErrors';
+import { PaginatedResult } from '../common/dto/paginated-result.dto';
 
 @Injectable()
 export class CareersService {
@@ -26,7 +27,7 @@ export class CareersService {
     }
   }
 
-  async findAll(filters?: FindCareersDto): Promise<Career[] | undefined | null> {
+  async findAll(filters?: FindCareersDto): Promise<PaginatedResult<Career> | undefined | null> {
     try {
       const page = Math.max(1, filters?.page ?? 1);
       const limitRaw = filters?.limit ?? 10;
@@ -37,17 +38,37 @@ export class CareersService {
       if (filters?.id) where.id = String(filters.id);
       if (filters?.name) where.name = filters.name.toLowerCase();
 
+      let data: Career[] = [];
+      let total = 0;
+
       if (filters?.name) {
-        return await this.careerRepository
+        const qb = this.careerRepository
           .createQueryBuilder('career')
           .where(where.id ? 'career.id = :id' : '1=1', where.id ? { id: where.id } : {})
           .andWhere('LOWER(career.name) LIKE :name', { name: `%${filters.name.toLowerCase()}%` })
           .skip(skip)
-          .take(take)
-          .getMany();
+          .take(take);
+
+        const [items, count] = await qb.getManyAndCount();
+        data = items;
+        total = count;
+      } else {
+        const [items, count] = await this.careerRepository.findAndCount({ where, skip, take });
+        data = items;
+        total = count;
       }
 
-      return await this.careerRepository.find({ where, skip, take });
+      const totalPages = Math.max(1, Math.ceil(total / take));
+
+      return {
+        data,
+        meta: {
+          total,
+          page,
+          limit: take,
+          totalPages,
+        },
+      };
     } catch (error) {
       handleException(error, this.logger);
     }

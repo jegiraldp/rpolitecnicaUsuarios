@@ -1,12 +1,17 @@
 import { USE_MOCK } from "./config";
 import type { Career } from "@/types/Career";
+import type { PaginatedResponse } from "@/types/common";
 import { CareersAPI, type CareerFilters } from "./api/careersService";
+import { buildMockPaginatedResponse } from "./pagination";
 
 export const CareersService = {
-  async list(filters?: CareerFilters): Promise<Career[]> {
+  async list(filters?: CareerFilters): Promise<PaginatedResponse<Career>> {
     if (USE_MOCK) {
       const data = await import("./mock/careers.json");
-      return data.default as Career[];
+      return buildMockPaginatedResponse(data.default as Career[], {
+        page: filters?.page,
+        limit: filters?.limit,
+      });
     }
     return CareersAPI.list(filters);
   },
@@ -39,4 +44,3 @@ export const CareersService = {
     return CareersAPI.remove(id);
   },
 };
-

@@ -7,18 +7,33 @@ import { CareersService } from "@/services/careers";
 import FiltersPanel, { type FilterField } from "@/components/ui/Filters";
 import { PlugIcon } from "@/utils/plugins/plugicon";
 
+type CareerFiltersState = { name: string };
+
 export default function CareersPage() {
   const [careers, setCareers] = useState<Career[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [filters, setFilters] = useState<Record<string,string>>({ name: '' });
+  const [filters, setFilters] = useState<CareerFiltersState>({ name: "" });
+  const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0 });
 
-  const load = async () => {
+  const load = async (options?: { page?: number; limit?: number; filtersOverride?: CareerFiltersState }) => {
+      const page = options?.page ?? pagination.page;
+      const limit = options?.limit ?? pagination.limit;
+      const activeFilters = options?.filtersOverride ?? filters;
       try {
         setLoading(true);
         setError(null);
-        const data = await CareersService.list({ page: 1, limit: 10, name: filters.name || undefined });
-        setCareers(data);
+        const response = await CareersService.list({
+          page,
+          limit,
+          name: activeFilters.name || undefined,
+        });
+        setCareers(response.data);
+        setPagination({
+          page: response.meta.page,
+          limit: response.meta.limit,
+          total: response.meta.total,
+        });
       } catch (e: any) {
         setError(e?.message || "Error cargando carreras");
       } finally {
@@ -58,7 +73,7 @@ export default function CareersPage() {
       setLoading(true);
       setError(null);
       await CareersService.remove(toDelete.id);
-      setCareers((prev) => prev.filter((i) => i.id !== toDelete.id));
+      await load();
       setConfirmOpen(false);
       setToDelete(null);
     } catch (e: any) {
@@ -73,13 +88,14 @@ export default function CareersPage() {
     try {
       setLoading(true);
       setError(null);
+      let targetPage = pagination.page;
       if (isEditing && editingId) {
-        const updated = await CareersService.update(editingId, { name: name.trim() });
-        setCareers((prev) => prev.map((i) => (i.id === updated.id ? updated : i)));
+        await CareersService.update(editingId, { name: name.trim() });
       } else {
-        const created = await CareersService.create({ name: name.trim() });
-        setCareers((prev) => [created, ...prev]);
+        await CareersService.create({ name: name.trim() });
+        targetPage = 1;
       }
+      await load({ page: targetPage });
       setIsOpen(false);
     } catch (e: any) {
       setError(e?.message || "Error guardando carrera");
@@ -125,8 +141,12 @@ export default function CareersPage() {
         fields={[{ name:'name', label:'Nombre', placeholder:'Buscar por nombre'}] as FilterField[]}
         values={filters}
         onChange={(n,v)=> setFilters((f)=> ({...f,[n]:v}))}
-        onSearch={load}
-        onClear={()=>{ setFilters({ name: ''}); load(); }}
+        onSearch={() => load({ page: 1 })}
+        onClear={()=>{
+          const cleared = { name: "" };
+          setFilters(cleared);
+          load({ page: 1, filtersOverride: cleared });
+        }}
       />
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-semibold">Carreras</h2>
@@ -136,7 +156,15 @@ export default function CareersPage() {
       </div>
 
       {error && <div className="mb-2 text-sm text-red-600">{error}</div>}
-      <Table<Career> data={careers} columns={columns} />
+      <Table<Career>
+        data={careers}
+        columns={columns}
+        totalItems={pagination.total}
+        pageIndex={pagination.page - 1}
+        pageSize={pagination.limit}
+        onPageChange={(pageIndex) => load({ page: pageIndex + 1 })}
+        onPageSizeChange={(size) => load({ page: 1, limit: size })}
+      />
 
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title={isEditing ? "Editar carrera" : "Nueva carrera"} size="sm">
         <div className="space-y-4">

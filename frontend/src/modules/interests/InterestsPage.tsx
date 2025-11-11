@@ -8,20 +8,35 @@ import { InterestsService } from "@/services/interests";
 import FiltersPanel, { type FilterField } from "@/components/ui/Filters";
 import { PlugIcon } from "@/utils/plugins/plugicon";
 
+type InterestFiltersState = { name: string };
+
 export default function InterestsPage() {
   const [interests, setInterests] = useState<Interest[]>([
     // initial empty, will fetch
   ]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [filters, setFilters] = useState<Record<string, string>>({ name: "" });
+  const [filters, setFilters] = useState<InterestFiltersState>({ name: "" });
+  const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0 });
 
-  const load = async () => {
+  const load = async (options?: { page?: number; limit?: number; filtersOverride?: InterestFiltersState }) => {
+      const page = options?.page ?? pagination.page;
+      const limit = options?.limit ?? pagination.limit;
+      const activeFilters = options?.filtersOverride ?? filters;
       try {
         setLoading(true);
         setError(null);
-        const data = await InterestsService.list({ page: 1, limit: 10, name: filters.name || undefined });
-        setInterests(data);
+        const response = await InterestsService.list({
+          page,
+          limit,
+          name: activeFilters.name || undefined,
+        });
+        setInterests(response.data);
+        setPagination({
+          page: response.meta.page,
+          limit: response.meta.limit,
+          total: response.meta.total,
+        });
       } catch (e: any) {
         setError(e?.message || "Error cargando intereses");
       } finally {
@@ -63,7 +78,7 @@ export default function InterestsPage() {
       setLoading(true);
       setError(null);
       await InterestsService.remove(toDelete.id);
-      setInterests((prev) => prev.filter((i) => i.id !== toDelete.id));
+      await load();
       setConfirmOpen(false);
       setToDelete(null);
     } catch (e: any) {
@@ -78,13 +93,14 @@ export default function InterestsPage() {
     try {
       setLoading(true);
       setError(null);
+      let targetPage = pagination.page;
       if (isEditing && editingId) {
-        const updated = await InterestsService.update(editingId, { name: name.trim() });
-        setInterests((prev) => prev.map((i) => (i.id === updated.id ? updated : i)));
+        await InterestsService.update(editingId, { name: name.trim() });
       } else {
-        const created = await InterestsService.create({ name: name.trim() });
-        setInterests((prev) => [created, ...prev]);
+        await InterestsService.create({ name: name.trim() });
+        targetPage = 1;
       }
+      await load({ page: targetPage });
       setIsOpen(false);
     } catch (e: any) {
       setError(e?.message || "Error guardando interés");
@@ -130,8 +146,12 @@ export default function InterestsPage() {
         fields={[{ name: 'name', label: 'Nombre', placeholder: 'Buscar por nombre' }] as FilterField[]}
         values={filters}
         onChange={(n,v)=> setFilters((f)=>({...f,[n]:v}))}
-        onSearch={load}
-        onClear={()=>{ setFilters({ name: '' }); load(); }}
+        onSearch={() => load({ page: 1 })}
+        onClear={()=>{
+          const cleared = { name: "" };
+          setFilters(cleared);
+          load({ page: 1, filtersOverride: cleared });
+        }}
       />
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-semibold">Intereses</h2>
@@ -143,7 +163,15 @@ export default function InterestsPage() {
       {error && (
         <div className="mb-2 text-sm text-red-600">{error}</div>
       )}
-      <Table<Interest> data={interests} columns={columns} />
+      <Table<Interest>
+        data={interests}
+        columns={columns}
+        totalItems={pagination.total}
+        pageIndex={pagination.page - 1}
+        pageSize={pagination.limit}
+        onPageChange={(pageIndex) => load({ page: pageIndex + 1 })}
+        onPageSizeChange={(size) => load({ page: 1, limit: size })}
+      />
 
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title={isEditing ? "Editar interés" : "Nuevo interés"} size="sm">
         <div className="space-y-4">

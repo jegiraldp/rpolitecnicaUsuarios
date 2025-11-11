@@ -41,10 +41,10 @@ describe('InterestsService - Unit', () => {
   describe('find', () => {
     it('findAll paginated', async () => {
       const items = [ { id: 'i1', name: 'a' }, { id: 'i2', name: 'b' } ];
-      mockInterestRepo.find.mockResolvedValue(items);
+      mockInterestRepo.findAndCount.mockResolvedValue([items, items.length]);
       const res = await service.findAll({ page: 1, limit: 10 } as any);
-      expect(Array.isArray(res)).toBe(true);
-      expect(res).toHaveLength(2);
+      expect(res?.data).toHaveLength(2);
+      expect(res?.meta.total).toBe(2);
     });
     it('findOne by id', async () => {
       const item = { id: 'iid', name: 'x' } as any;
@@ -59,11 +59,11 @@ describe('InterestsService - Unit', () => {
         andWhere: jest.fn().mockReturnThis(),
         skip: jest.fn().mockReturnThis(),
         take: jest.fn().mockReturnThis(),
-        getMany: jest.fn().mockResolvedValue(items),
+        getManyAndCount: jest.fn().mockResolvedValue([items, items.length]),
       };
       mockInterestRepo.createQueryBuilder.mockReturnValueOnce(qb as any);
       const res = await service.findAll({ page: 1, limit: 10, name: 'name' } as any);
-      expect(res).toHaveLength(1);
+      expect(res?.data).toHaveLength(1);
     });
   });
 
