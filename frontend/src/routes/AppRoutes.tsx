@@ -1,5 +1,5 @@
 import { Suspense, lazy } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import MainLayout from "../components/layout/MainLayout";
 import LoginPage from "@/modules/auth/LoginPage";
 
@@ -15,11 +15,14 @@ const AppRoutes = () => {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/" element={<MainLayout />}>
+            <Route index element={<Navigate to="users" replace />} />
             <Route path="users" element={<UsersPage />} />
             <Route path="colleges" element={<CollegesPage />} />
             <Route path="interests" element={<InterestsPage />} />
             <Route path="careers" element={<CareersPage />} />
+            <Route path="*" element={<Navigate to="users" replace />} />
           </Route>
+          <Route path="*" element={<Navigate to="/users" replace />} />
         </Routes>
       </Suspense>
     </BrowserRouter>
