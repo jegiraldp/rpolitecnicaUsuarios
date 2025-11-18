@@ -3,7 +3,7 @@ import { ConfigModule } from "@nestjs/config";
 import { Test, TestingModule } from "@nestjs/testing";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { DataSource } from "typeorm";
-import { SeedService } from "../seed/seedService";
+import { SeedService } from "src/common/tests/seed/seedService";
 import { College } from "../../colleges/entities/college.entity";
 import { CollegesModule } from "../../colleges/colleges.module";
 import { Interest } from "../../interests/entities/interest.entity";
@@ -21,7 +21,7 @@ export class TestDatabaseManager {
         if (!this.initialized) {
             this.module = await Test.createTestingModule({
                 imports: [
-                    ConfigModule.forRoot({envFilePath: '../.env.test', isGlobal: true}),
+                    ConfigModule.forRoot({ envFilePath: '../.env.test', isGlobal: true }),
                     TypeOrmModule.forRoot({
                         type: "mysql",
                         host: process.env.DB_HOST,
@@ -59,7 +59,7 @@ export class TestDatabaseManager {
     static async initializeInt(): Promise<TestingModule> {
         this.module = await Test.createTestingModule({
             imports: [
-                ConfigModule.forRoot({envFilePath: '../.env.test', isGlobal: true}),
+                ConfigModule.forRoot({ envFilePath: '../.env.test', isGlobal: true }),
                 TypeOrmModule.forRoot({
                     type: "sqlite",
                     database: ":memory:",
@@ -71,14 +71,14 @@ export class TestDatabaseManager {
                     }
                 }),
                 TypeOrmModule.forFeature([College, Interest, Career, User]),
-                    CollegesModule,
-                    InterestsModule,
-                    CareersModule,
-                    UsersModule,
-                ],
-                providers: [SeedService]
+                CollegesModule,
+                InterestsModule,
+                CareersModule,
+                UsersModule,
+            ],
+            providers: [SeedService]
         }).compile();
- 
+
         // const dataSource = this.module.get<DataSource>(DataSource);
         // await dataSource.query('PRAGMA foreign_keys = ON;');
 

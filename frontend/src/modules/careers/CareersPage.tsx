@@ -8,10 +8,12 @@ import FiltersPanel, { type FilterField } from "@/components/ui/Filters";
 import { PlugIcon } from "@/utils/plugins/plugicon";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card } from "@/components/ui/Card";
+import { useAuth } from "@/services/auth/AuthProvider";
 
 type CareerFiltersState = { name: string };
 
 export default function CareersPage() {
+  const { isAuthenticated } = useAuth();
   const [careers, setCareers] = useState<Career[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,23 +55,27 @@ export default function CareersPage() {
   const isEditing = useMemo(() => Boolean(editingId), [editingId]);
 
   const openCreate = () => {
+    if (!isAuthenticated) return;
     setEditingId(null);
     setName("");
     setIsOpen(true);
   };
 
   const handleEdit = (item: Career) => {
+    if (!isAuthenticated) return;
     setEditingId(item.id);
     setName(item.name);
     setIsOpen(true);
   };
 
   const requestDelete = (item: Career) => {
+    if (!isAuthenticated) return;
     setToDelete(item);
     setConfirmOpen(true);
   };
 
   const confirmDelete = async () => {
+    if (!isAuthenticated) return;
     if (!toDelete) return;
     try {
       setLoading(true);
@@ -86,6 +92,7 @@ export default function CareersPage() {
   };
 
   const handleSave = async () => {
+    if (!isAuthenticated) return;
     if (!name.trim()) return;
     try {
       setLoading(true);
@@ -106,36 +113,41 @@ export default function CareersPage() {
     }
   };
 
-  const columns: ColumnDef<Career>[] = [
-    {
-      id: "col_name",
-      accessorKey: "name",
-      header: "Nombre",
-      cell: (info) => info.getValue(),
-    },
-    {
-      id: "col_actions",
-      header: () => <div className="text-right w-full">Acciones</div>,
-      cell: ({ row }) => (
-        <div className="flex justify-end items-center gap-1">
-          <button
-            onClick={() => handleEdit(row.original)}
-            className="p-2 rounded-md text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition-colors"
-            aria-label="Editar carrera"
-          >
-            <PlugIcon name="edit" size={18} />
-          </button>
-          <button
-            onClick={() => requestDelete(row.original)}
-            className="p-2 rounded-md text-red-600 hover:text-red-800 hover:bg-red-50 transition-colors"
-            aria-label="Eliminar carrera"
-          >
-            <PlugIcon name="delete" size={18} />
-          </button>
-        </div>
-      ),
-    },
-  ];
+  const columns: ColumnDef<Career>[] = useMemo(() => {
+    const base: ColumnDef<Career>[] = [
+      {
+        id: "col_name",
+        accessorKey: "name",
+        header: "Nombre",
+        cell: (info) => info.getValue(),
+      },
+    ];
+    if (isAuthenticated) {
+      base.push({
+        id: "col_actions",
+        header: () => <div className="text-right w-full">Acciones</div>,
+        cell: ({ row }) => (
+          <div className="flex justify-end items-center gap-1">
+            <button
+              onClick={() => handleEdit(row.original)}
+              className="p-2 rounded-md text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition-colors"
+              aria-label="Editar carrera"
+            >
+              <PlugIcon name="edit" size={18} />
+            </button>
+            <button
+              onClick={() => requestDelete(row.original)}
+              className="p-2 rounded-md text-red-600 hover:text-red-800 hover:bg-red-50 transition-colors"
+              aria-label="Eliminar carrera"
+            >
+              <PlugIcon name="delete" size={18} />
+            </button>
+          </div>
+        ),
+      });
+    }
+    return base;
+  }, [isAuthenticated]);
 
   return (
     <div className="space-y-6">
@@ -143,9 +155,14 @@ export default function CareersPage() {
         title="Carreras"
         subtitle="Programas académicos disponibles para los usuarios."
         actions={
-          <button onClick={openCreate} className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 shadow-sm">
-            + Nueva carrera
-          </button>
+          isAuthenticated ? (
+            <button
+              onClick={openCreate}
+              className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 shadow-sm"
+            >
+              + Nueva carrera
+            </button>
+          ) : null
         }
       />
 

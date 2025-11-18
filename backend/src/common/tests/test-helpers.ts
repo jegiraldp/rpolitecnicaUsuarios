@@ -10,7 +10,7 @@ import { CareersService } from "../../careers/careers.service";
 import { Career } from "../../careers/entities/career.entity";
 import { UsersService } from "../../users/users.service";
 import { User } from "../../users/entities/user.entity";
-import { SeedService } from "../seed/seedService";
+import { SeedService } from "src/common/tests/seed/seedService";
 
 export interface TestServices {
     collegeServices: CollegesService;

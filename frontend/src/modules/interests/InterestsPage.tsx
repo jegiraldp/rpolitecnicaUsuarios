@@ -9,10 +9,12 @@ import FiltersPanel, { type FilterField } from "@/components/ui/Filters";
 import { PlugIcon } from "@/utils/plugins/plugicon";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card } from "@/components/ui/Card";
+import { useAuth } from "@/services/auth/AuthProvider";
 
 type InterestFiltersState = { name: string };
 
 export default function InterestsPage() {
+  const { isAuthenticated } = useAuth();
   const [interests, setInterests] = useState<Interest[]>([
     // initial empty, will fetch
   ]);
@@ -59,22 +61,26 @@ export default function InterestsPage() {
   const isEditing = useMemo(() => Boolean(editingId), [editingId]);
 
   const openCreate = () => {
+    if (!isAuthenticated) return;
     setEditingId(null);
     setName("");
     setIsOpen(true);
   };
 
   const handleEdit = (item: Interest) => {
+    if (!isAuthenticated) return;
     setEditingId(item.id);
     setName(item.name);
     setIsOpen(true);
   };
   const requestDelete = (item: Interest) => {
+    if (!isAuthenticated) return;
     setToDelete(item);
     setConfirmOpen(true);
   };
 
   const confirmDelete = async () => {
+    if (!isAuthenticated) return;
     if (!toDelete) return;
     try {
       setLoading(true);
@@ -91,6 +97,7 @@ export default function InterestsPage() {
   };
 
   const handleSave = async () => {
+    if (!isAuthenticated) return;
     if (!name.trim()) return;
     try {
       setLoading(true);
@@ -118,28 +125,30 @@ export default function InterestsPage() {
       header: "Nombre",
       cell: (info) => info.getValue(),
     },
-    {
-      id: "col_actions", // 👈 id obligatorio aquí
-      header: () => <div className="text-right w-full">Acciones</div>,
-      cell: ({ row }) => (
-        <div className="flex justify-end items-center gap-1">
-          <button
-            onClick={() => handleEdit(row.original)}
-            className="p-2 rounded-md text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition-colors"
-            aria-label="Editar interés"
-          >
-            <PlugIcon name="edit" size={18} />
-          </button>
-          <button
-            onClick={() => requestDelete(row.original)}
-            className="p-2 rounded-md text-red-600 hover:text-red-800 hover:bg-red-50 transition-colors"
-            aria-label="Eliminar interés"
-          >
-            <PlugIcon name="delete" size={18} />
-          </button>
-        </div>
-      ),
-    },
+    ...(isAuthenticated
+      ? [{
+        id: "col_actions",
+        header: () => <div className="text-right w-full">Acciones</div>,
+        cell: ({ row }) => (
+          <div className="flex justify-end items-center gap-1">
+            <button
+              onClick={() => handleEdit(row.original)}
+              className="p-2 rounded-md text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition-colors"
+              aria-label="Editar interés"
+            >
+              <PlugIcon name="edit" size={18} />
+            </button>
+            <button
+              onClick={() => requestDelete(row.original)}
+              className="p-2 rounded-md text-red-600 hover:text-red-800 hover:bg-red-50 transition-colors"
+              aria-label="Eliminar interés"
+            >
+              <PlugIcon name="delete" size={18} />
+            </button>
+          </div>
+        ),
+      }] as ColumnDef<Interest>[]
+      : []),
   ];
 
   return (
@@ -148,9 +157,14 @@ export default function InterestsPage() {
         title="Intereses"
         subtitle="Catálogo de intereses que se asignan a los usuarios."
         actions={
-          <button onClick={openCreate} className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 shadow-sm">
-            + Nuevo interés
-          </button>
+          isAuthenticated ? (
+            <button
+              onClick={openCreate}
+              className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 shadow-sm"
+            >
+              + Nuevo interés
+            </button>
+          ) : null
         }
       />
 

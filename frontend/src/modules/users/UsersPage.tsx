@@ -18,6 +18,7 @@ import { PlugIcon } from "@/utils/plugins/plugicon";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card } from "@/components/ui/Card";
 import { FormField } from "@/components/ui/FormField";
+import { useAuth } from "@/services/auth/AuthProvider";
 
 const initials = (name: string) => {
   const parts = name.trim().split(/\s+/);
@@ -48,6 +49,7 @@ const createEmptyForm = (): UserForm => ({
 });
 
 export default function UsersPage() {
+  const { isAuthenticated } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -122,12 +124,14 @@ export default function UsersPage() {
   }, []);
 
   const openCreate = () => {
+    if (!isAuthenticated) return;
     setEditingId(null);
     setForm(createEmptyForm());
     setIsOpen(true);
   };
 
   const handleEdit = (u: User) => {
+    if (!isAuthenticated) return;
     setEditingId(u.id);
     setForm({
       username: u.username || "",
@@ -142,6 +146,7 @@ export default function UsersPage() {
   };
 
   const handleSave = async () => {
+    if (!isAuthenticated) return;
     if (!form.username.trim() || !form.email.trim()) return;
     try {
       setLoading(true);
@@ -175,11 +180,13 @@ export default function UsersPage() {
   };
 
   const requestDelete = (u: User) => {
+    if (!isAuthenticated) return;
     setToDelete(u);
     setConfirmOpen(true);
   };
 
   const confirmDelete = async () => {
+    if (!isAuthenticated) return;
     if (!toDelete) return;
     try {
       setLoading(true);
@@ -252,46 +259,30 @@ export default function UsersPage() {
         </div>
       ),
     },
-    {
-      id: "col_status",
-      header: "Estado",
-      cell: ({ row }) => (
-        <span className={`px-2 py-1 rounded-full text-xs ${row.original.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600'}`}>
-          {row.original.isActive ? 'Activo' : 'Inactivo'}
-        </span>
-      ),
-    },
-    {
-      id: "col_created",
-      header: "Registro",
-      cell: ({ row }) => (
-        <span className="text-gray-600">
-          {row.original.createdAt ? new Date(row.original.createdAt).toLocaleDateString() : '—'}
-        </span>
-      ),
-    },
-    {
-      id: "col_actions",
-      header: () => <div className="text-right w-full">Acciones</div>,
-      cell: ({ row }) => (
-        <div className="flex justify-end items-center gap-1">
-          <button
-            onClick={() => handleEdit(row.original)}
-            className="p-2 rounded-md text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition-colors"
-            aria-label="Editar usuario"
-          >
-            <PlugIcon name="edit" size={18} />
-          </button>
-          <button
-            onClick={() => requestDelete(row.original)}
-            className="p-2 rounded-md text-red-600 hover:text-red-800 hover:bg-red-50 transition-colors"
-            aria-label="Desactivar usuario"
-          >
-            <PlugIcon name="delete" size={18} />
-          </button>
-        </div>
-      ),
-    },
+    ...(isAuthenticated
+      ? [{
+        id: "col_actions",
+        header: () => <div className="text-right w-full">Acciones</div>,
+        cell: ({ row }) => (
+          <div className="flex justify-end items-center gap-1">
+            <button
+              onClick={() => handleEdit(row.original)}
+              className="p-2 rounded-md text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition-colors"
+              aria-label="Editar usuario"
+            >
+              <PlugIcon name="edit" size={18} />
+            </button>
+            <button
+              onClick={() => requestDelete(row.original)}
+              className="p-2 rounded-md text-red-600 hover:text-red-800 hover:bg-red-50 transition-colors"
+              aria-label="Desactivar usuario"
+            >
+              <PlugIcon name="delete" size={18} />
+            </button>
+          </div>
+        ),
+      }] as ColumnDef<User>[]
+      : []),
   ];
 
   const countryOptions = [
@@ -305,12 +296,14 @@ export default function UsersPage() {
         title="Usuarios"
         subtitle="Administra periodistas, acceso y pertenencias."
         actions={
-          <button
-            onClick={openCreate}
-            className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 shadow-sm"
-          >
-            + Nuevo usuario
-          </button>
+          isAuthenticated ? (
+            <button
+              onClick={openCreate}
+              className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 shadow-sm"
+            >
+              + Nuevo usuario
+            </button>
+          ) : null
         }
       />
 

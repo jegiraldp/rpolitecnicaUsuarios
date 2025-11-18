@@ -8,10 +8,12 @@ import { CollegesService } from "@/services/colleges";
 import { PlugIcon } from "@/utils/plugins/plugicon";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card } from "@/components/ui/Card";
+import { useAuth } from "@/services/auth/AuthProvider";
 
 type CollegeFiltersState = { name: string };
 
 export default function CollegesPage() {
+  const { isAuthenticated } = useAuth();
   const [colleges, setColleges] = useState<College[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,23 +55,27 @@ export default function CollegesPage() {
   const isEditing = useMemo(() => Boolean(editingId), [editingId]);
 
   const openCreate = () => {
+    if (!isAuthenticated) return;
     setEditingId(null);
     setName("");
     setIsOpen(true);
   };
 
   const handleEdit = (item: College) => {
+    if (!isAuthenticated) return;
     setEditingId(item.id);
     setName(item.name);
     setIsOpen(true);
   };
 
   const requestDelete = (item: College) => {
+    if (!isAuthenticated) return;
     setToDelete(item);
     setConfirmOpen(true);
   };
 
   const confirmDelete = async () => {
+    if (!isAuthenticated) return;
     if (!toDelete) return;
     try {
       setLoading(true);
@@ -86,6 +92,7 @@ export default function CollegesPage() {
   };
 
   const handleSave = async () => {
+    if (!isAuthenticated) return;
     if (!name.trim()) return;
     try {
       setLoading(true);
@@ -106,36 +113,41 @@ export default function CollegesPage() {
     }
   };
 
-  const columns: ColumnDef<College>[] = [
-    {
-      id: "col_name",
-      accessorKey: "name",
-      header: "Nombre",
-      cell: (info) => info.getValue(),
-    },
-    {
-      id: "col_actions",
-      header: () => <div className="text-right w-full">Acciones</div>,
-      cell: ({ row }) => (
-        <div className="flex justify-end items-center gap-1">
-          <button
-            onClick={() => handleEdit(row.original)}
-            className="p-2 rounded-md text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition-colors"
-            aria-label="Editar universidad"
-          >
-            <PlugIcon name="edit" size={18} />
-          </button>
-          <button
-            onClick={() => requestDelete(row.original)}
-            className="p-2 rounded-md text-red-600 hover:text-red-800 hover:bg-red-50 transition-colors"
-            aria-label="Eliminar universidad"
-          >
-            <PlugIcon name="delete" size={18} />
-          </button>
-        </div>
-      ),
-    },
-  ];
+  const columns: ColumnDef<College>[] = useMemo(() => {
+    const base: ColumnDef<College>[] = [
+      {
+        id: "col_name",
+        accessorKey: "name",
+        header: "Nombre",
+        cell: (info) => info.getValue(),
+      },
+    ];
+    if (isAuthenticated) {
+      base.push({
+        id: "col_actions",
+        header: () => <div className="text-right w-full">Acciones</div>,
+        cell: ({ row }) => (
+          <div className="flex justify-end items-center gap-1">
+            <button
+              onClick={() => handleEdit(row.original)}
+              className="p-2 rounded-md text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition-colors"
+              aria-label="Editar universidad"
+            >
+              <PlugIcon name="edit" size={18} />
+            </button>
+            <button
+              onClick={() => requestDelete(row.original)}
+              className="p-2 rounded-md text-red-600 hover:text-red-800 hover:bg-red-50 transition-colors"
+              aria-label="Eliminar universidad"
+            >
+              <PlugIcon name="delete" size={18} />
+            </button>
+          </div>
+        ),
+      });
+    }
+    return base;
+  }, [isAuthenticated]);
 
   return (
     <div className="space-y-6">
@@ -143,9 +155,14 @@ export default function CollegesPage() {
         title="Universidades"
         subtitle="Crea y edita las instituciones disponibles en el sistema."
         actions={
-          <button onClick={openCreate} className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 shadow-sm">
-            + Nueva universidad
-          </button>
+          isAuthenticated ? (
+            <button
+              onClick={openCreate}
+              className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 shadow-sm"
+            >
+              + Nueva universidad
+            </button>
+          ) : null
         }
       />
 

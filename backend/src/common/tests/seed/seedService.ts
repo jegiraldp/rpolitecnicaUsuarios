@@ -1,8 +1,8 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { College } from "../../colleges/entities/college.entity";
+import { College } from "src/colleges/entities/college.entity";
 import { Repository } from "typeorm";
-import { CollegeFactory } from "../tests/factories/college.factory";
+import { CollegeFactory } from "../factories/college.factory";
 
 @Injectable()
 export class SeedService {

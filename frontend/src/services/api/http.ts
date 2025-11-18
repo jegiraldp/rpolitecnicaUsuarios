@@ -1,4 +1,5 @@
 import { API_BASE_URL } from "../config";
+import { getAccessToken } from "../auth/session";
 
 type HttpMethod = "GET" | "POST" | "PATCH" | "DELETE";
 
@@ -35,10 +36,12 @@ export async function http<TResponse = any, TBody = any>({
   headers = {},
 }: RequestOptions<TBody>): Promise<TResponse> {
   const url = `${joinUrl(API_BASE_URL, path)}${buildQuery(query)}`;
+  const token = getAccessToken();
   const res = await fetch(url, {
     method,
     headers: {
       "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...headers,
     },
     body: body ? JSON.stringify(body) : undefined,
