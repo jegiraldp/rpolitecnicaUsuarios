@@ -9,9 +9,18 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 
+const ssl =
+  process.env.DB_SSL === 'true'
+    ? {
+      rejectUnauthorized: true,
+      ca: process.env.DB_SSL_CA?.replace(/\\n/g, '\n'),
+    }
+    : undefined;
+
 @Module({
   imports: [CollegesModule, InterestsModule, CareersModule, UsersModule,
-    ConfigModule.forRoot({envFilePath: '../.env', isGlobal: true}),
+    ConfigModule.forRoot({ envFilePath: '../.env', isGlobal: true }),
+
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: process.env.DB_HOST,
@@ -19,6 +28,7 @@ import { AuthModule } from './auth/auth.module';
       username: process.env.MYSQL_USER,
       password: process.env.MYSQL_PASSWORD,
       database: process.env.MYSQL_DATABASE,
+      ssl,
       autoLoadEntities: true,
       synchronize: true,
     }),
@@ -27,4 +37,4 @@ import { AuthModule } from './auth/auth.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
