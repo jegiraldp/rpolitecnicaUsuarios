@@ -7,11 +7,12 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { JwtStrategy } from './strategies/jwtStrategy';
+import { Auth } from './entities/auth.entity';
 
 @Module({
   imports: [
     PassportModule.register({ defaultStrategy: 'jwt' }),
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, Auth]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

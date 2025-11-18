@@ -1,26 +1,65 @@
-import { Injectable } from '@nestjs/common';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { LoginDto } from './dto/login.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { User } from 'src/users/entities/user.entity';
+import { Repository } from 'typeorm';
+import { handleException } from 'src/common/handleErrors';
+import { Auth } from './entities/auth.entity';
+import { JwtService } from '@nestjs/jwt';
+import { JwtPayload } from 'src/common/interfaces/jwtInterfaces';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
-  create(createAuthDto: CreateAuthDto) {
-    return 'This action adds a new auth';
-  }
+  private readonly logger = new Logger(AuthService.name);
+  constructor(
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    @InjectRepository(Auth)
+    private readonly authRepository: Repository<Auth>,
+    private readonly jwtService: JwtService,
+  ) { }
 
-  findAll() {
-    return `This action returns all auth`;
-  }
+  async login(loginDto: LoginDto) {
+    try {
+      const username = loginDto.username.toLowerCase();
 
-  findOne(id: number) {
-    return `This action returns a #${id} auth`;
-  }
+      const credentials = await this.authRepository
+        .createQueryBuilder('auth')
+        .addSelect('auth.password')
+        .where('LOWER(auth.username) = :username', { username })
+        .getOne();
 
-  update(id: number, updateAuthDto: UpdateAuthDto) {
-    return `This action updates a #${id} auth`;
-  }
+      if (!credentials) throw new UnauthorizedException('Credenciales inválidas');
 
-  remove(id: number) {
-    return `This action removes a #${id} auth`;
+      const user = await this.userRepository
+        .createQueryBuilder('user')
+        .addSelect('user.isActive')
+        .where('LOWER(user.username) = :username', { username })
+        .getOne();
+
+      if (!user) throw new UnauthorizedException('Usuario no existe');
+      console.log(user)
+      if (!user.isActive) throw new UnauthorizedException('Usuario inactivo');
+
+      const isValid = await bcrypt.compare(loginDto.password, credentials.password);
+      if (!isValid) throw new UnauthorizedException('Credenciales inválidas');
+
+      const payload: JwtPayload = { id: user.id };
+      const accessToken = await this.jwtService.signAsync(payload);
+
+      return {
+        accessToken,
+        user: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          country: user.country,
+          role: credentials.role,
+        },
+      };
+    } catch (error) {
+      handleException(error, this.logger);
+    }
   }
 }

@@ -31,4 +31,3 @@ export class CreateUserDto {
   @IsUUID('4', { each: true })
   interestIds?: string[];
 }
-

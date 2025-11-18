@@ -5,8 +5,9 @@ import { User } from "src/users/entities/user.entity"
 import { Repository } from "typeorm"
 import { ConfigService } from "@nestjs/config"
 import { JwtPayload } from "src/common/interfaces/jwtInterfaces"
-import { UnauthorizedException } from "@nestjs/common"
+import { Injectable, UnauthorizedException } from "@nestjs/common"
 
+@Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
     constructor(
         @InjectRepository(User)

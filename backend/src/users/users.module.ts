@@ -13,4 +13,3 @@ import { Interest } from '../interests/entities/interest.entity';
   providers: [UsersService],
 })
 export class UsersModule {}
-
