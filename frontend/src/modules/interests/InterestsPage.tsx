@@ -7,6 +7,8 @@ import { useEffect } from "react";
 import { InterestsService } from "@/services/interests";
 import FiltersPanel, { type FilterField } from "@/components/ui/Filters";
 import { PlugIcon } from "@/utils/plugins/plugicon";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { Card } from "@/components/ui/Card";
 
 type InterestFiltersState = { name: string };
 
@@ -141,7 +143,17 @@ export default function InterestsPage() {
   ];
 
   return (
-    <div>
+    <div className="space-y-6">
+      <PageHeader
+        title="Intereses"
+        subtitle="Catálogo de intereses que se asignan a los usuarios."
+        actions={
+          <button onClick={openCreate} className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 shadow-sm">
+            + Nuevo interés
+          </button>
+        }
+      />
+
       <FiltersPanel
         fields={[{ name: 'name', label: 'Nombre', placeholder: 'Buscar por nombre' }] as FilterField[]}
         values={filters}
@@ -153,25 +165,22 @@ export default function InterestsPage() {
           load({ page: 1, filtersOverride: cleared });
         }}
       />
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-semibold">Intereses</h2>
-        <button onClick={openCreate} className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700">
-          + Nuevo Interés
-        </button>
-      </div>
 
       {error && (
         <div className="mb-2 text-sm text-red-600">{error}</div>
       )}
-      <Table<Interest>
-        data={interests}
-        columns={columns}
-        totalItems={pagination.total}
-        pageIndex={pagination.page - 1}
-        pageSize={pagination.limit}
-        onPageChange={(pageIndex) => load({ page: pageIndex + 1 })}
-        onPageSizeChange={(size) => load({ page: 1, limit: size })}
-      />
+
+      <Card className="overflow-hidden" contentClassName="p-0">
+        <Table<Interest>
+          data={interests}
+          columns={columns}
+          totalItems={pagination.total}
+          pageIndex={pagination.page - 1}
+          pageSize={pagination.limit}
+          onPageChange={(pageIndex) => load({ page: pageIndex + 1 })}
+          onPageSizeChange={(size) => load({ page: 1, limit: size })}
+        />
+      </Card>
 
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title={isEditing ? "Editar interés" : "Nuevo interés"} size="sm">
         <div className="space-y-4">

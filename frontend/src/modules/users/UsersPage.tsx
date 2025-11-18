@@ -15,6 +15,9 @@ import type { Career } from "@/types/Career";
 import type { Interest } from "@/types/Interest";
 import type { CountryOption } from "@/services/countries";
 import { PlugIcon } from "@/utils/plugins/plugicon";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { Card } from "@/components/ui/Card";
+import { FormField } from "@/components/ui/FormField";
 
 const initials = (name: string) => {
   const parts = name.trim().split(/\s+/);
@@ -297,7 +300,20 @@ export default function UsersPage() {
   ];
 
   return (
-    <div>
+    <div className="space-y-6">
+      <PageHeader
+        title="Usuarios"
+        subtitle="Administra periodistas, acceso y pertenencias."
+        actions={
+          <button
+            onClick={openCreate}
+            className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 shadow-sm"
+          >
+            + Nuevo usuario
+          </button>
+        }
+      />
+
       <FiltersPanel
         fields={[
           { name:'username', label:'Usuario', placeholder:'Buscar por usuario'},
@@ -316,48 +332,44 @@ export default function UsersPage() {
           load({ page: 1, filtersOverride: cleared });
         }}
       />
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-semibold">Usuarios</h2>
-        <button onClick={openCreate} className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700">
-          + Nuevo Usuario
-        </button>
-      </div>
 
       {error && <div className="mb-2 text-sm text-red-600">{error}</div>}
-      <Table<User>
-        data={users}
-        columns={columns}
-        totalItems={pagination.total}
-        pageIndex={pagination.page - 1}
-        pageSize={pagination.limit}
-        onPageChange={(pageIndex) => load({ page: pageIndex + 1 })}
-        onPageSizeChange={(size) => load({ page: 1, limit: size })}
-      />
+
+      <Card className="overflow-hidden" contentClassName="p-0">
+        <Table<User>
+          data={users}
+          columns={columns}
+          totalItems={pagination.total}
+          pageIndex={pagination.page - 1}
+          pageSize={pagination.limit}
+          onPageChange={(pageIndex) => load({ page: pageIndex + 1 })}
+          onPageSizeChange={(size) => load({ page: 1, limit: size })}
+        />
+      </Card>
 
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title={editingId ? "Editar usuario" : "Nuevo usuario"} size="lg">
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm text-gray-700 mb-1">Usuario</label>
+            <FormField label="Usuario" htmlFor="username">
               <input
+                id="username"
                 value={form.username}
                 onChange={(e) => setForm((f) => ({ ...f, username: e.target.value }))}
                 className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Nombre de usuario"
               />
-            </div>
-            <div>
-              <label className="block text-sm text-gray-700 mb-1">Email</label>
+            </FormField>
+            <FormField label="Email" htmlFor="email">
               <input
+                id="email"
                 type="email"
                 value={form.email}
                 onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
                 className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="correo@dominio.com"
               />
-            </div>
-            <div className="md:col-span-2">
-              <label className="block text-sm text-gray-700 mb-1">País</label>
+            </FormField>
+            <FormField label="País">
               <select
                 value={form.country}
                 onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))}
@@ -368,9 +380,8 @@ export default function UsersPage() {
                   <option key={c.code} value={c.value}>{c.name}</option>
                 ))}
               </select>
-            </div>
-            <div className="md:col-span-2">
-              <label className="block text-sm text-gray-700 mb-1">Carrera</label>
+            </FormField>
+            <FormField label="Carrera">
               <select
                 value={form.careerId}
                 onChange={(e) => setForm((f) => ({ ...f, careerId: e.target.value }))}
@@ -381,9 +392,8 @@ export default function UsersPage() {
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </select>
-            </div>
-            <div className="md:col-span-2">
-              <label className="block text-sm text-gray-700 mb-1">Universidad</label>
+            </FormField>
+            <FormField label="Universidad">
               <select
                 value={form.collegeId}
                 onChange={(e) => setForm((f) => ({ ...f, collegeId: e.target.value }))}
@@ -394,10 +404,9 @@ export default function UsersPage() {
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </select>
-            </div>
+            </FormField>
             {editingId && (
-              <div className="md:col-span-2">
-                <label className="block text-sm text-gray-700 mb-1">Estado del usuario</label>
+              <FormField label="Estado del usuario">
                 <select
                   value={form.isActive ? "true" : "false"}
                   onChange={(e) => setForm((f) => ({ ...f, isActive: e.target.value === "true" }))}
@@ -406,11 +415,11 @@ export default function UsersPage() {
                   <option value="true">Activo</option>
                   <option value="false">Inactivo</option>
                 </select>
-              </div>
+              </FormField>
             )}
           </div>
           <div>
-            <label className="block text-sm text-gray-700 mb-2">Intereses (Selecciona uno o más)</label>
+            <p className="block text-sm text-gray-700 mb-2">Intereses (Selecciona uno o más)</p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               {interests.map((i) => {
                 const checked = form.interestIds.includes(i.id);

@@ -18,6 +18,7 @@ interface FiltersPanelProps {
   onChange: (name: string, value: string | string[]) => void;
   onSearch: () => void;
   onClear: () => void;
+  defaultOpen?: boolean;
 }
 
 export default function FiltersPanel({
@@ -27,37 +28,34 @@ export default function FiltersPanel({
   onChange,
   onSearch,
   onClear,
+  defaultOpen = false,
 }: FiltersPanelProps) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   const [openMulti, setOpenMulti] = useState<string | null>(null);
 
   return (
-    <div className="bg-white border rounded-lg shadow-sm mb-6 transition-all">
-      {/* Header */}
+    <div className="bg-white border rounded-xl shadow-sm transition-all">
       <div
         className="flex justify-between items-center px-4 py-3 cursor-pointer select-none"
         onClick={() => setOpen(!open)}
       >
         <div className="flex items-center gap-2">
-          <PlugIcon name="filter" size={16} className="text-gray-600" />
-          <h3 className="font-medium text-gray-800">{title}</h3>
+          <PlugIcon name="filter" size={16} className="text-blue-600" />
+          <h3 className="font-semibold text-slate-900">{title}</h3>
         </div>
         {open ? (
-          <ChevronUp size={16} className="text-gray-500" />
+          <ChevronUp size={16} className="text-slate-500" />
         ) : (
-          <ChevronDown size={16} className="text-gray-500" />
+          <ChevronDown size={16} className="text-slate-500" />
         )}
       </div>
 
-      {/* Body */}
       {open && (
-        <div className="px-6 pb-6 border-t animate-fadeIn">
+        <div className="px-6 pb-6 border-t bg-slate-50/40 animate-fadeIn rounded-b-xl">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
             {fields.map((field) => {
               const value = values[field.name];
-              const commonLabel = (
-                <label className="block text-sm text-gray-600 mb-1">{field.label}</label>
-              );
+              const commonLabel = <label className="block text-sm text-slate-700 mb-1">{field.label}</label>;
               if (field.type === 'select') {
                 return (
                   <div key={field.name}>
@@ -91,7 +89,7 @@ export default function FiltersPanel({
                       <span className="truncate">
                         {labels.length ? labels.join(', ') : (field.placeholder || 'Selecciona...')}
                       </span>
-                      <ChevronDown size={16} className="text-gray-500" />
+                      <ChevronDown size={16} className="text-slate-500" />
                     </button>
                     {openMulti === field.name && (
                       <div className="absolute z-50 mt-1 w-full bg-white border rounded-md shadow-lg max-h-56 overflow-auto p-2">
@@ -139,13 +137,13 @@ export default function FiltersPanel({
           <div className="flex justify-end gap-3 mt-6 pt-3 border-t">
             <button
               onClick={onClear}
-              className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
+              className="px-4 py-2 text-sm text-slate-600 hover:text-slate-800"
             >
               Limpiar filtros
             </button>
             <button
               onClick={onSearch}
-              className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 shadow-sm"
             >
               Buscar
             </button>

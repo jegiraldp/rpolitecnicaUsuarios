@@ -7,6 +7,7 @@ import { CareersModule } from './careers/careers.module';
 import { UsersModule } from './users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [CollegesModule, InterestsModule, CareersModule, UsersModule,
@@ -20,7 +21,8 @@ import { ConfigModule } from '@nestjs/config';
       database: process.env.MYSQL_DATABASE,
       autoLoadEntities: true,
       synchronize: true,
-    })
+    }),
+    AuthModule
   ],
   controllers: [AppController],
   providers: [AppService],

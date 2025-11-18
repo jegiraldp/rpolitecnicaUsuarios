@@ -19,7 +19,7 @@ export class User {
   @Column({ type: 'varchar', length: 120, nullable: true })
   country: string | null;
 
-  @Column({ name: 'is_active', type: 'boolean', default: true })
+  @Column({ name: 'is_active', type: 'boolean', default: true, select: false })
   isActive: boolean;
 
   @Column({ name: 'updated_at', type: 'datetime', nullable: true })

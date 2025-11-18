@@ -6,6 +6,8 @@ import Modal from "@/components/ui/Modal";
 import { CareersService } from "@/services/careers";
 import FiltersPanel, { type FilterField } from "@/components/ui/Filters";
 import { PlugIcon } from "@/utils/plugins/plugicon";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { Card } from "@/components/ui/Card";
 
 type CareerFiltersState = { name: string };
 
@@ -136,7 +138,17 @@ export default function CareersPage() {
   ];
 
   return (
-    <div>
+    <div className="space-y-6">
+      <PageHeader
+        title="Carreras"
+        subtitle="Programas académicos disponibles para los usuarios."
+        actions={
+          <button onClick={openCreate} className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 shadow-sm">
+            + Nueva carrera
+          </button>
+        }
+      />
+
       <FiltersPanel
         fields={[{ name:'name', label:'Nombre', placeholder:'Buscar por nombre'}] as FilterField[]}
         values={filters}
@@ -148,23 +160,19 @@ export default function CareersPage() {
           load({ page: 1, filtersOverride: cleared });
         }}
       />
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-semibold">Carreras</h2>
-        <button onClick={openCreate} className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700">
-          + Nueva Carrera
-        </button>
-      </div>
-
       {error && <div className="mb-2 text-sm text-red-600">{error}</div>}
-      <Table<Career>
-        data={careers}
-        columns={columns}
-        totalItems={pagination.total}
-        pageIndex={pagination.page - 1}
-        pageSize={pagination.limit}
-        onPageChange={(pageIndex) => load({ page: pageIndex + 1 })}
-        onPageSizeChange={(size) => load({ page: 1, limit: size })}
-      />
+
+      <Card className="overflow-hidden" contentClassName="p-0">
+        <Table<Career>
+          data={careers}
+          columns={columns}
+          totalItems={pagination.total}
+          pageIndex={pagination.page - 1}
+          pageSize={pagination.limit}
+          onPageChange={(pageIndex) => load({ page: pageIndex + 1 })}
+          onPageSizeChange={(size) => load({ page: 1, limit: size })}
+        />
+      </Card>
 
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title={isEditing ? "Editar carrera" : "Nueva carrera"} size="sm">
         <div className="space-y-4">

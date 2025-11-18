@@ -3,11 +3,13 @@ import { CareersService } from './careers.service';
 import { CreateCareerDto } from './dto/create-career.dto';
 import { UpdateCareerDto } from './dto/update-career.dto';
 import { FindCareersDto } from './dto/find-careers.dto';
+import { Auth } from 'src/common/decorators/auth.decorator';
 
 @Controller('careers')
 export class CareersController {
   constructor(private readonly careersService: CareersService) {}
 
+  @Auth()
   @Post()
   create(@Body() dto: CreateCareerDto) {
     return this.careersService.create(dto);

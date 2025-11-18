@@ -21,34 +21,34 @@ export default function Navbar() {
   const base = location.pathname.split('/')[1] || '';
   const title = titles[base] || "Gestión";
   return (
-    <header className="bg-white border-b flex justify-between items-center px-6 py-4">
-      {/* IZQUIERDA: título y subtítulo */}
-      <div>
-        <h1 className="text-xl font-semibold text-gray-800">{title}</h1>
-        <p className="text-sm text-gray-500">
-          Sistema de gestión para periodistas universitarios
-        </p>
+    <header className="bg-white border-b shadow-sm">
+      <div className="max-w-6xl mx-auto px-4 py-4 flex flex-wrap gap-4 items-center justify-between">
+        <div>
+          <div className="flex items-center gap-2 text-blue-600 font-semibold tracking-tight">
+            <PlugIcon name="navUsers" aria-hidden size={18} />
+            <span>Panel Revista politecnica</span>
+          </div>
+          <div className="text-sm text-slate-500">{title}</div>
+        </div>
+        <nav className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-full px-2 py-1">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={({ isActive }) =>
+                `px-3 py-1.5 rounded-full text-sm font-medium flex items-center gap-2 transition ${
+                  isActive
+                    ? "bg-white border border-slate-200 text-slate-900 shadow-sm"
+                    : "text-slate-600 hover:text-slate-900"
+                }`
+              }
+            >
+              <PlugIcon name={item.icon} aria-hidden size={16} />
+              {item.label}
+            </NavLink>
+          ))}
+        </nav>
       </div>
-
-      {/* DERECHA: botones de navegación */}
-      <nav className="flex items-center gap-3">
-        {navItems.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            className={({ isActive }) =>
-              `px-4 py-2 rounded-lg text-sm border transition-colors flex items-center gap-2 ${
-                isActive
-                  ? "border-blue-500 text-blue-600 bg-blue-50 font-medium"
-                  : "border-transparent text-gray-600 hover:bg-gray-100"
-              }`
-            }
-          >
-            <PlugIcon name={item.icon} aria-hidden size={18} />
-            {item.label}
-          </NavLink>
-        ))}
-      </nav>
     </header>
   );
 }
