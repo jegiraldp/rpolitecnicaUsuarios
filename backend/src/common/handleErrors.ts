@@ -3,13 +3,13 @@ import { BadRequestException, HttpException, InternalServerErrorException, Logge
 export const handleException = (error: any, logger: Logger) => {
 
     if (error.code === 'ER_DUP_ENTRY' || error.errno === 1062) {
-        throw new BadRequestException(error.sqlMessage || 'Duplicate entry')
+        throw new BadRequestException(error.sqlMessage || 'Entrada duplicada')
     }
     if (error.code === 'ER_BAD_NULL_ERROR' || error.errno === 1048) {
-        throw new BadRequestException(error.sqlMessage || 'A required field cannot be null')
+        throw new BadRequestException(error.sqlMessage || 'Un campo requerido no puede ser nulo')
     }
     if (error.code === 'ER_ROW_IS_REFERENCED_2' || error.errno === 1451 || error.errno === 1452) {
-        throw new BadRequestException('There are still related records linked to this entry')
+        throw new BadRequestException('Hay registros relacionados vinculados a esta entrada')
     }
 
     logger.error(error)
@@ -18,5 +18,5 @@ export const handleException = (error: any, logger: Logger) => {
         throw error;
     }
 
-    throw new InternalServerErrorException("Unexpected error! check server logs")
-} 
+    throw new InternalServerErrorException("Error inesperado, revisa los logs del servidor")
+}

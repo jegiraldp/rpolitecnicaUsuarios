@@ -22,6 +22,6 @@ export class UserRoleGuard implements CanActivate {
       return true
     }
 
-    throw new ForbiddenException('You don´t have the permission to perform this action')
+    throw new ForbiddenException('No tienes permisos para realizar esta acción')
   }
 }
