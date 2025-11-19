@@ -19,7 +19,7 @@ export class CollegesService {
     try {
       const exists = await this.existsByName(createCollegeDto.name);
       if (exists) {
-        throw new BadRequestException('College with this name already exists');
+        throw new BadRequestException('Ya existe una institución con ese nombre');
       }
       const college = this.collegeRepository.create(createCollegeDto);
       return this.collegeRepository.save(college);
@@ -88,13 +88,13 @@ export class CollegesService {
     try {
       const existing = await this.collegeRepository.findOne({ where: { id } });
       if (!existing) {
-        throw new NotFoundException('College not found');
+        throw new NotFoundException('Institución no encontrada');
       }
 
       if (updateCollegeDto.name) {
         const duplicate = await this.existsByName(updateCollegeDto.name, id);
         if (duplicate) {
-          throw new BadRequestException('College with this name already exists');
+          throw new BadRequestException('Ya existe una institución con ese nombre');
         }
       }
 
@@ -112,7 +112,7 @@ export class CollegesService {
     try {
       const existing = await this.collegeRepository.findOne({ where: { id } });
       if (!existing) {
-        throw new NotFoundException('College not found');
+        throw new NotFoundException('Institución no encontrada');
       }
       return await this.collegeRepository.remove(existing);
     } catch (error) {

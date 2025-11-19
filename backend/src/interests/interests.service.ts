@@ -19,7 +19,7 @@ export class InterestsService {
   async create(createDto: CreateInterestDto) {
     try {
       const exists = await this.existsByName(createDto.name);
-      if (exists) throw new BadRequestException('Interest with this name already exists');
+      if (exists) throw new BadRequestException('Ya existe un interés con ese nombre');
       const interest = this.interestRepository.create(createDto);
       return await this.interestRepository.save(interest);
     } catch (error) {
@@ -86,11 +86,11 @@ export class InterestsService {
   async update(id: string, updateDto: UpdateInterestDto): Promise<Interest | undefined> {
     try {
       const existing = await this.interestRepository.findOne({ where: { id } });
-      if (!existing) throw new NotFoundException('Interest not found');
+      if (!existing) throw new NotFoundException('Interés no encontrado');
 
       if (updateDto.name) {
         const dup = await this.existsByName(updateDto.name, id);
-        if (dup) throw new BadRequestException('Interest with this name already exists');
+        if (dup) throw new BadRequestException('Ya existe un interés con ese nombre');
       }
 
       const toSave = this.interestRepository.merge(existing, { ...updateDto, updatedAt: new Date() as any });
@@ -103,7 +103,7 @@ export class InterestsService {
   async remove(id: string): Promise<Interest | undefined> {
     try {
       const existing = await this.interestRepository.findOne({ where: { id } });
-      if (!existing) throw new NotFoundException('Interest not found');
+      if (!existing) throw new NotFoundException('Interés no encontrado');
       return await this.interestRepository.remove(existing);
     } catch (error) {
       handleException(error, this.logger);

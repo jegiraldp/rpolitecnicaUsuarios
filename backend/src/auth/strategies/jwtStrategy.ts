@@ -30,8 +30,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
             .addSelect("user.is_active")
             .where("user.id=:id", { id })
             .getOne()
-        if (!user) throw new UnauthorizedException("Token not valid")
-        if (!user.isActive) throw new UnauthorizedException("User is not available")
+        if (!user) throw new UnauthorizedException("Token no válido")
+        if (!user.isActive) throw new UnauthorizedException("Usuario no disponible")
         return user
     }
 }

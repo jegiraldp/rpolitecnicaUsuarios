@@ -15,7 +15,7 @@ export class UserRoleGuard implements CanActivate {
 
     const req = context.switchToHttp().getRequest();
     const user = req.user;
-    if (!user) throw new NotFoundException("User not found");
+    if (!user) throw new NotFoundException("Usuario no encontrado");
 
     // TODO: Crear una relacion de roles y cambiar esta condicion
     if (validRoles.includes(user.role)) {

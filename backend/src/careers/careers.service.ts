@@ -19,7 +19,7 @@ export class CareersService {
   async create(createDto: CreateCareerDto) {
     try {
       const exists = await this.existsByName(createDto.name);
-      if (exists) throw new BadRequestException('Career with this name already exists');
+      if (exists) throw new BadRequestException('Ya existe una carrera con ese nombre');
       const career = this.careerRepository.create(createDto);
       return await this.careerRepository.save(career);
     } catch (error) {
@@ -86,11 +86,11 @@ export class CareersService {
   async update(id: string, updateDto: UpdateCareerDto): Promise<Career | undefined> {
     try {
       const existing = await this.careerRepository.findOne({ where: { id } });
-      if (!existing) throw new NotFoundException('Career not found');
+      if (!existing) throw new NotFoundException('Carrera no encontrada');
 
       if (updateDto.name) {
         const dup = await this.existsByName(updateDto.name, id);
-        if (dup) throw new BadRequestException('Career with this name already exists');
+        if (dup) throw new BadRequestException('Ya existe una carrera con ese nombre');
       }
 
       const toSave = this.careerRepository.merge(existing, { ...updateDto, updatedAt: new Date() as any });
@@ -103,7 +103,7 @@ export class CareersService {
   async remove(id: string): Promise<Career | undefined> {
     try {
       const existing = await this.careerRepository.findOne({ where: { id } });
-      if (!existing) throw new NotFoundException('Career not found');
+      if (!existing) throw new NotFoundException('Carrera no encontrada');
       return await this.careerRepository.remove(existing);
     } catch (error) {
       handleException(error, this.logger);

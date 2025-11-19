@@ -18,18 +18,45 @@ export async function runSeed(app: INestApplication) {
     const userRepo = app.get<Repository<User>>(getRepositoryToken(User));
     const authRepo = app.get<Repository<Auth>>(getRepositoryToken(Auth));
 
-    const user = await userRepo.findOneBy({ email });
-    if (!user) throw new Error("Admin user not found");
+    let user = await userRepo
+        .createQueryBuilder('u')
+        .where('LOWER(u.email) = :email OR LOWER(u.username) = :username', {
+            email: email.toLowerCase(),
+            username: username.toLowerCase(),
+        })
+        .getOne();
+
+    if (!user) {
+        user = userRepo.create({
+            username: username.toLowerCase(),
+            email: email.toLowerCase(),
+            isActive: true,
+        });
+        user = await userRepo.save(user);
+    }
 
     const hash = await bcrypt.hash(password, 10);
 
-    const existingAuth = await authRepo.findOne({ where: [{ user: { id: user.id } }, { username }] });
-    const authAdmin = authRepo.create({
-        user: user,
-        username,
-        password: hash,
-        role: Roles.ADMIN,
+    let auth = await authRepo.findOne({
+        where: [{ user: { id: user.id } }, { username: username.toLowerCase() }],
+        relations: ['user'],
     });
 
-    return await authRepo.save(authAdmin);
+    if (auth) {
+        auth.password = hash;
+        auth.role = Roles.ADMIN;
+        auth.username = username.toLowerCase();
+        auth.user = user;
+    } else {
+        auth = authRepo.create({
+            user,
+            username: username.toLowerCase(),
+            password: hash,
+            role: Roles.ADMIN,
+        });
+    }
+
+    await authRepo.save(auth);
+    // eslint-disable-next-line no-console
+    console.log(`Seed admin ready: ${username} (${email})`);
 }

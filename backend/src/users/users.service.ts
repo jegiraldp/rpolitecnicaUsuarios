@@ -40,8 +40,8 @@ export class UsersService {
 
   async create(dto: CreateUserDto) {
     try {
-      if (await this.usernameExists(dto.username)) throw new BadRequestException('Username already exists');
-      if (await this.emailExists(dto.email)) throw new BadRequestException('Email already exists');
+      if (await this.usernameExists(dto.username)) throw new BadRequestException('El usuario ya existe');
+      if (await this.emailExists(dto.email)) throw new BadRequestException('El correo ya existe');
 
       const user = this.userRepo.create({
         username: dto.username,
@@ -112,10 +112,10 @@ export class UsersService {
   async update(id: string, dto: UpdateUserDto): Promise<User | undefined> {
     try {
       const existing = await this.userRepo.findOne({ where: { id }, relations: ['interests', 'college', 'career'] });
-      if (!existing) throw new NotFoundException('User not found');
+      if (!existing) throw new NotFoundException('Usuario no encontrado');
 
-      if (dto.username && (await this.usernameExists(dto.username, id))) throw new BadRequestException('Username already exists');
-      if (dto.email && (await this.emailExists(dto.email, id))) throw new BadRequestException('Email already exists');
+      if (dto.username && (await this.usernameExists(dto.username, id))) throw new BadRequestException('El usuario ya existe');
+      if (dto.email && (await this.emailExists(dto.email, id))) throw new BadRequestException('El correo ya existe');
 
       if (dto.collegeId !== undefined) existing.college = dto.collegeId ? await this.collegeRepo.findOne({ where: { id: dto.collegeId } }) : null;
       if (dto.careerId !== undefined) existing.career = dto.careerId ? await this.careerRepo.findOne({ where: { id: dto.careerId } }) : null;
@@ -137,7 +137,7 @@ export class UsersService {
   async deactivate(id: string): Promise<User | undefined> {
     try {
       const existing = await this.userRepo.findOne({ where: { id } });
-      if (!existing) throw new NotFoundException('User not found');
+      if (!existing) throw new NotFoundException('Usuario no encontrado');
       existing.isActive = false;
       existing.updatedAt = new Date() as any;
       return await this.userRepo.save(existing);
