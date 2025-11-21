@@ -27,10 +27,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
             .leftJoinAndSelect("user.college", "college")
             .leftJoinAndSelect("user.career", "career")
             .leftJoinAndSelect("user.interests", "interests")
-            .addSelect("user.is_active")
+            .addSelect("user.isActive")
             .where("user.id=:id", { id })
             .getOne()
         if (!user) throw new UnauthorizedException("Token no válido")
+        console.log(user)
         if (!user.isActive) throw new UnauthorizedException("Usuario no disponible")
         return user
     }

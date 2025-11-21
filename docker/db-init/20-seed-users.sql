@@ -2778,7 +2778,7 @@ INSERT INTO user (id,username,email,country,created_at,updated_at,is_active) VAL
   
   ('d2ad9afb-9c28-40c2-a65f-6704e415c58d','linabatson3','linabatson@comcast.net','Lithuania','2025-05-28 12:34:32','2025-05-28 12:34:32',0),
   ('0fc83a76-1e63-46ae-8c67-34fd38e7f3f5','donnymirams','donnymirams@bol.com.br','French Guiana','2025-05-28 13:58:09','2025-05-28 13:58:09',0),
-  ('c1641c49-165a-411c-ae5e-3d15f2f5900c','philbeaumont50','phil_beaumont@aol.com','Côte d'Ivoire','2025-05-28 15:07:41','2025-05-28 15:07:41',0),
+  ('c1641c49-165a-411c-ae5e-3d15f2f5900c','philbeaumont50','phil_beaumont@aol.com','Côte d''Ivoire','2025-05-28 15:07:41','2025-05-28 15:07:41',0),
   ('6f7ace6c-5f48-43c6-bc67-d611479e309d','shadlauer581','shadlauer@yahoo.com','Australia','2025-05-28 17:01:10','2025-05-28 17:01:10',0),
   ('533a8900-f550-49d1-9b8b-e50ddb1d7e2c','carolsrc770040','carol.skemp@yahoo.com','Dominican Republic','2025-05-28 20:15:58','2025-05-28 20:15:58',0),
   ('a241eb56-45d9-4d78-bd03-0a445455d714','valeriaulmer9','valeria_ulmer@terra.com.br','French Guiana','2025-05-29 09:17:44','2025-05-29 09:17:45',0),
@@ -2821,7 +2821,7 @@ INSERT INTO user (id,username,email,country,created_at,updated_at,is_active) VAL
   ('acfcc003-088f-4df5-bce9-7fd0b0c2ce1f','hershelaranda25','hershelaranda@aol.com','Australia','2025-06-05 07:18:22','2025-06-05 07:18:22',0),
   ('37ce676e-34ce-4baf-9e7e-fc91efc55054','aecheverrirubio','aecheverri@umanizales.edu.co',NULL,'2025-06-05 15:33:58','2025-06-05 15:33:58',1),
   ('cf6243a2-48a0-40f5-9383-308ab78a4949','ezmtressa887','tressamacias@yahoo.com','Lebanon','2025-06-06 02:57:44','2025-06-06 02:57:44',0),
-  ('8498a651-b1bf-4305-bbf1-ec8542f16075','lindsayvnl','lindsay.mccormick@yahoo.com','Côte d'Ivoire','2025-06-06 10:56:13','2025-06-06 10:56:13',0);
+  ('8498a651-b1bf-4305-bbf1-ec8542f16075','lindsayvnl','lindsay.mccormick@yahoo.com','Côte d''Ivoire','2025-06-06 10:56:13','2025-06-06 10:56:13',0);
 INSERT INTO user (id,username,email,country,created_at,updated_at,is_active) VALUES
   
   ('4238e6b6-eb67-4007-9612-1dae1b02273b','51w955421830911','lkbkecfngdeha_135@googlemail.com','Laos','2025-06-06 11:17:27','2025-06-06 11:17:27',0),
@@ -2921,7 +2921,7 @@ INSERT INTO user (id,username,email,country,created_at,updated_at,is_active) VAL
 INSERT INTO user (id,username,email,country,created_at,updated_at,is_active) VALUES
   
   ('be8a5014-cc0e-4aef-9eaf-e5ea642a23ed','marciatrammell','marciatrammell@hotmail.co.uk','Australia','2025-07-02 03:54:18','2025-07-02 03:54:18',0),
-  ('badab22e-db95-4765-8ab0-dc0a48172aa9','maricelabills58','maricela.bills@live.fr','Côte d'Ivoire','2025-07-03 12:07:52','2025-07-03 12:07:52',0),
+  ('badab22e-db95-4765-8ab0-dc0a48172aa9','maricelabills58','maricela.bills@live.fr','Côte d''Ivoire','2025-07-03 12:07:52','2025-07-03 12:07:52',0),
   ('0538f5e2-9820-4d27-a654-e6d0fed3f9d1','casiebushell094','casie_bushell@yahoo.com','Vietnam','2025-07-04 01:24:41','2025-07-04 01:24:41',0),
   ('768dcd9a-6234-4e3b-a810-2ef85a005981','josefazouch92','josefazouch@hotmail.fr','Austria','2025-07-04 14:46:58','2025-07-04 14:46:58',0),
   ('c04956bf-cef1-4b6b-88bf-07079ee02ac7','hugo-huamani2025','hugo.huamani@unas.edu.pe','Peru','2025-07-04 16:42:21','2025-07-04 21:13:47',1),

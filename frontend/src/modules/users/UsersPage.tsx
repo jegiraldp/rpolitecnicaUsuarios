@@ -73,34 +73,34 @@ export default function UsersPage() {
   const [toDelete, setToDelete] = useState<User | null>(null);
 
   const load = async (options?: { page?: number; limit?: number; filtersOverride?: Record<string, string | string[]> }) => {
-      const page = options?.page ?? pagination.page;
-      const limit = options?.limit ?? pagination.limit;
-      const activeFilters = options?.filtersOverride ?? filters;
-      try {
-        setLoading(true);
-        setError(null);
-        const response = await UsersService.list({
-          page,
-          limit,
-          username: (activeFilters.username as string) || undefined,
-          email: (activeFilters.email as string) || undefined,
-          country: (activeFilters.countries as string) || undefined,
-          collegeId: (activeFilters.colleges as string) || undefined,
-          careerId: (activeFilters.careers as string) || undefined,
-          interestId: (activeFilters.interests as string) || undefined,
-        });
-        setUsers(response.data);
-        setPagination({
-          page: response.meta.page,
-          limit: response.meta.limit,
-          total: response.meta.total,
-        });
-      } catch (e: any) {
-        setError(e?.message || "Error cargando usuarios");
-      } finally {
-        setLoading(false);
-      }
-    };
+    const page = options?.page ?? pagination.page;
+    const limit = options?.limit ?? pagination.limit;
+    const activeFilters = options?.filtersOverride ?? filters;
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await UsersService.list({
+        page,
+        limit,
+        username: (activeFilters.username as string) || undefined,
+        email: (activeFilters.email as string) || undefined,
+        country: (activeFilters.countries as string) || undefined,
+        collegeId: (activeFilters.colleges as string) || undefined,
+        careerId: (activeFilters.careers as string) || undefined,
+        interestId: (activeFilters.interests as string) || undefined,
+      });
+      setUsers(response.data);
+      setPagination({
+        page: response.meta.page,
+        limit: response.meta.limit,
+        total: response.meta.total,
+      });
+    } catch (e: any) {
+      setError(e?.message || "Error cargando usuarios");
+    } finally {
+      setLoading(false);
+    }
+  };
   useEffect(() => { load(); }, []);
 
   useEffect(() => {
@@ -309,18 +309,18 @@ export default function UsersPage() {
 
       <FiltersPanel
         fields={[
-          { name:'username', label:'Usuario', placeholder:'Buscar por usuario'},
-          { name:'email', label:'Email', placeholder:'Buscar por email', type: 'email' },
-          { name:'countries', label:'País', type:'select', options: countryOptions },
-          { name:'careers', label:'Carrera', type:'select', options: [{label:'Todas', value:''}, ...careers.map(c=>({label:c.name, value:c.id}))] },
-          { name:'colleges', label:'Universidad', type:'select', options: [{label:'Todas', value:''}, ...colleges.map(c=>({label:c.name, value:c.id}))] },
-          { name:'interests', label:'Interés', type:'select', options: [{label:'Todos', value:''}, ...interests.map(i=>({label:i.name, value:i.id}))] },
+          { name: 'username', label: 'Usuario', placeholder: 'Buscar por usuario' },
+          { name: 'email', label: 'Email', placeholder: 'Buscar por email', type: 'email' },
+          { name: 'countries', label: 'País', type: 'select', options: countryOptions },
+          { name: 'careers', label: 'Carrera', type: 'select', options: [{ label: 'Todas', value: '' }, ...careers.map(c => ({ label: c.name, value: c.id }))] },
+          { name: 'colleges', label: 'Universidad', type: 'select', options: [{ label: 'Todas', value: '' }, ...colleges.map(c => ({ label: c.name, value: c.id }))] },
+          { name: 'interests', label: 'Interés', type: 'select', options: [{ label: 'Todos', value: '' }, ...interests.map(i => ({ label: i.name, value: i.id }))] },
         ] as FilterField[]}
         values={filters}
-        onChange={(n,v)=> setFilters((f)=> ({...f,[n]:v}))}
+        onChange={(n, v) => setFilters((f) => ({ ...f, [n]: v }))}
         onSearch={() => load({ page: 1 })}
-        onClear={()=>{
-          const cleared = { username:'', email:'', countries: '', colleges: '', careers: '', interests: '' };
+        onClear={() => {
+          const cleared = { username: '', email: '', countries: '', colleges: '', careers: '', interests: '' };
           setFilters(cleared);
           load({ page: 1, filtersOverride: cleared });
         }}
@@ -368,7 +368,7 @@ export default function UsersPage() {
                 onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))}
                 className="w-full border rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="">Selecciona un país</option>
+                <option value="" disabled>Selecciona un país</option>
                 {countries.map((c) => (
                   <option key={c.code} value={c.value}>{c.name}</option>
                 ))}
@@ -380,7 +380,7 @@ export default function UsersPage() {
                 onChange={(e) => setForm((f) => ({ ...f, careerId: e.target.value }))}
                 className="w-full border rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="">Selecciona una carrera</option>
+                <option value="" disabled>Selecciona una carrera</option>
                 {careers.map((c) => (
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
@@ -392,7 +392,7 @@ export default function UsersPage() {
                 onChange={(e) => setForm((f) => ({ ...f, collegeId: e.target.value }))}
                 className="w-full border rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="">Selecciona una universidad</option>
+                <option value="" disabled>Selecciona una universidad</option>
                 {colleges.map((c) => (
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}

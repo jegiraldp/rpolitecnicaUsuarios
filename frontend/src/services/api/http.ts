@@ -47,8 +47,19 @@ export async function http<TResponse = any, TBody = any>({
     body: body ? JSON.stringify(body) : undefined,
   });
   if (!res.ok) {
+    const contentType = res.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) {
+      const data = await res.json().catch(() => null);
+      const messages = Array.isArray(data?.message) ? data.message : [data?.message ?? data?.error];
+      const clean = messages
+        .flatMap((m) => (Array.isArray(m) ? m : [m]))
+        .filter((m): m is string => Boolean(m))
+        .join("; ")
+        .trim();
+      throw new Error(clean || "Ocurrió un error al procesar la solicitud.");
+    }
     const text = await res.text().catch(() => "");
-    throw new Error(`HTTP ${res.status} ${res.statusText}: ${text}`);
+    throw new Error(text || "Ocurrió un error al procesar la solicitud.");
   }
   const contentType = res.headers.get("content-type") || "";
   if (contentType.includes("application/json")) return (await res.json()) as TResponse;

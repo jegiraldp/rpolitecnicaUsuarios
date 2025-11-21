@@ -60,12 +60,12 @@ export default function FiltersPanel({
                 return (
                   <div key={field.name}>
                     {commonLabel}
-                    <select
+                  <select
                       value={(value as string) || ''}
                       onChange={(e) => onChange(field.name, e.target.value)}
                       className="w-full border rounded-md p-2 text-sm bg-white focus:outline-blue-500"
                     >
-                      <option value="">Selecciona una opción</option>
+                      <option value="" disabled>Selecciona una opción</option>
                       {(field.options || []).map((opt) => (
                         <option key={opt.value} value={opt.value}>{opt.label}</option>
                       ))}

@@ -8,6 +8,7 @@ import { UsersModule } from './users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
+import { HealthModule } from './health/health.module';
 
 const ssl =
   process.env.DB_SSL === 'true'
@@ -32,7 +33,8 @@ const ssl =
       autoLoadEntities: true,
       synchronize: true,
     }),
-    AuthModule
+    AuthModule,
+    HealthModule
   ],
   controllers: [AppController],
   providers: [AppService],
