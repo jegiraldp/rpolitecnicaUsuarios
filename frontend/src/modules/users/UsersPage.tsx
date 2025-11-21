@@ -144,6 +144,10 @@ export default function UsersPage() {
     });
     setIsOpen(true);
   };
+  const handleShowUser = (u: User) => {
+
+    // setIsOpen(true);
+  };
 
   const handleSave = async () => {
     if (!isAuthenticated) return;
@@ -265,6 +269,13 @@ export default function UsersPage() {
         header: () => <div className="text-right w-full">Acciones</div>,
         cell: ({ row }) => (
           <div className="flex justify-end items-center gap-1">
+            <button
+              onClick={() => handleShowUser(row.original)}
+              className="p-2 rounded-md text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition-colors"
+              aria-label="Show usuario"
+            >
+              <PlugIcon name="eye" size={18} />
+            </button>
             <button
               onClick={() => handleEdit(row.original)}
               className="p-2 rounded-md text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition-colors"
