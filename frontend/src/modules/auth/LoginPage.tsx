@@ -2,7 +2,6 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/services/auth/AuthProvider";
-import { PlugIcon } from "lucide-react";
 
 export default function LoginPage() {
   const { login, loading } = useAuth();
