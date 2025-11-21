@@ -50,10 +50,10 @@ export async function http<TResponse = any, TBody = any>({
     const contentType = res.headers.get("content-type") || "";
     if (contentType.includes("application/json")) {
       const data = await res.json().catch(() => null);
-      const messages = Array.isArray(data?.message) ? data.message : [data?.message ?? data?.error];
-      const clean = messages
-        .flatMap((m) => (Array.isArray(m) ? m : [m]))
-        .filter((m): m is string => Boolean(m))
+      const rawMessages: unknown[] = Array.isArray(data?.message) ? data.message : [data?.message ?? data?.error];
+      const clean = rawMessages
+        .flatMap((m): unknown[] => (Array.isArray(m) ? m : [m]))
+        .filter((m): m is string => typeof m === "string" && m.length > 0)
         .join("; ")
         .trim();
       throw new Error(clean || "Ocurrió un error al procesar la solicitud.");
