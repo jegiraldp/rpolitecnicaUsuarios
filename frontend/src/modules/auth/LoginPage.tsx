@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/services/auth/AuthProvider";
+import { PlugIcon } from "lucide-react";
 
 export default function LoginPage() {
   const { login, loading } = useAuth();
@@ -26,6 +27,9 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-slate-100 flex items-center justify-center px-4">
       <div className="bg-white shadow rounded-lg w-full max-w-md p-6 space-y-6">
+        <button className="text-[11px] uppercase tracking-wide text-blue-600 font-semibold flex" onClick={() => navigate("/users")}>
+          Ir al inicio
+        </button>
         <div>
           <h1 className="text-xl font-semibold text-slate-900">Iniciar sesión</h1>
           <p className="text-sm text-slate-600">Ingresa con tu usuario y contraseña.</p>

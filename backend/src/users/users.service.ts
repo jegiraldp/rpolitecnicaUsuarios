@@ -69,6 +69,7 @@ export class UsersService {
 
       const qb = this.userRepo
         .createQueryBuilder('user')
+        .addSelect(['user.isActive'])
         .leftJoinAndSelect('user.college', 'college')
         .leftJoinAndSelect('user.career', 'career')
         .leftJoinAndSelect('user.interests', 'interest');

@@ -65,6 +65,7 @@ export default function UsersPage() {
   const [isOpen, setIsOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<UserForm>(() => createEmptyForm());
+  const [viewUser, setViewUser] = useState<User | null>(null);
   const [colleges, setColleges] = useState<College[]>([]);
   const [careers, setCareers] = useState<Career[]>([]);
   const [interests, setInterests] = useState<Interest[]>([]);
@@ -145,8 +146,7 @@ export default function UsersPage() {
     setIsOpen(true);
   };
   const handleShowUser = (u: User) => {
-
-    // setIsOpen(true);
+    setViewUser(u);
   };
 
   const handleSave = async () => {
@@ -240,6 +240,20 @@ export default function UsersPage() {
         </span>
       ),
     },
+    ...(isAuthenticated
+      ? [{
+        id: "col_status",
+        header: "Estado",
+        cell: ({ row }) => (
+          <span
+            className={`px-2 py-1 rounded-full text-xs ${row.original.isActive ? "bg-green-100 text-green-700" : "bg-gray-200 text-gray-700"
+              }`}
+          >
+            {row.original.isActive ? "Activo" : "Inactivo"}
+          </span>
+        ),
+      }] as ColumnDef<User>[]
+      : []),
     {
       id: "col_college",
       header: "Universidad",
@@ -254,46 +268,44 @@ export default function UsersPage() {
       id: "col_interests",
       header: "Intereses",
       cell: ({ row }) => (
-        <div className="flex flex-wrap gap-2">
-          {(row.original.interests || []).map((i) => (
-            <span key={i.id} className="px-2 py-1 rounded-md bg-blue-100 text-blue-700 text-xs">
-              {capitalize(i.name)}
-            </span>
-          ))}
-        </div>
+        <InterestsCell interests={row.original.interests || []} />
       ),
     },
-    ...(isAuthenticated
-      ? [{
+    ...(
+      [{
         id: "col_actions",
         header: () => <div className="text-right w-full">Acciones</div>,
         cell: ({ row }) => (
           <div className="flex justify-end items-center gap-1">
-            <button
+            {<button
               onClick={() => handleShowUser(row.original)}
               className="p-2 rounded-md text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition-colors"
               aria-label="Show usuario"
             >
               <PlugIcon name="eye" size={18} />
-            </button>
-            <button
-              onClick={() => handleEdit(row.original)}
-              className="p-2 rounded-md text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition-colors"
-              aria-label="Editar usuario"
-            >
-              <PlugIcon name="edit" size={18} />
-            </button>
-            <button
-              onClick={() => requestDelete(row.original)}
-              className="p-2 rounded-md text-red-600 hover:text-red-800 hover:bg-red-50 transition-colors"
-              aria-label="Desactivar usuario"
-            >
-              <PlugIcon name="delete" size={18} />
-            </button>
+            </button>}
+            {isAuthenticated &&
+              <>
+                <button
+                  onClick={() => handleEdit(row.original)}
+                  className="p-2 rounded-md text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition-colors"
+                  aria-label="Editar usuario"
+                >
+                  <PlugIcon name="edit" size={18} />
+                </button>
+                <button
+                  onClick={() => requestDelete(row.original)}
+                  className="p-2 rounded-md text-red-600 hover:text-red-800 hover:bg-red-50 transition-colors"
+                  aria-label="Desactivar usuario"
+                >
+                  <PlugIcon name="delete" size={18} />
+                </button>
+              </>
+            }
           </div>
         ),
       }] as ColumnDef<User>[]
-      : []),
+    ),
   ];
 
   const countryOptions = [
@@ -467,6 +479,78 @@ export default function UsersPage() {
           </div>
         </div>
       </Modal>
+
+      <Modal isOpen={!!viewUser} onClose={() => setViewUser(null)} title="Detalles del usuario" size="md">
+        {viewUser && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="h-12 w-12 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-lg font-semibold">
+                {initials(viewUser.username)}
+              </div>
+              <div>
+                <div className="text-lg font-semibold text-gray-900">{capitalize(viewUser.username)}</div>
+                <div className="text-sm text-gray-600">{viewUser.email}</div>
+              </div>
+            </div>
+            <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3 text-sm">
+              <InfoLine label="País" value={capitalize(viewUser.country || "—")} />
+              {isAuthenticated && (
+                <InfoLine label="Estado" value={viewUser.isActive ? "Activo" : "Inactivo"} />
+              )}
+              <InfoLine label="Universidad" value={viewUser.college?.name || "—"} />
+              <InfoLine label="Carrera" value={viewUser.career?.name || "—"} />
+              <InfoLine
+                label="Intereses"
+                value={
+                  viewUser.interests?.length
+                    ? viewUser.interests.map((i) => capitalize(i.name)).join(", ")
+                    : "—"
+                }
+              />
+              <InfoLine label="Creado" value={formatDate(viewUser.createdAt)} />
+              <InfoLine label="Actualizado" value={viewUser.updatedAt ? formatDate(viewUser.updatedAt) : "—"} />
+            </dl>
+            <div className="flex justify-end">
+              <button onClick={() => setViewUser(null)} className="px-3 py-2 rounded-md border">
+                Cerrar
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }
+
+const formatDate = (value?: string | null) => {
+  if (!value) return "—";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
+  return d.toLocaleString();
+};
+
+const InfoLine = ({ label, value }: { label: string; value: string }) => (
+  <div className="flex flex-col">
+    <dt className="text-[11px] uppercase tracking-wide text-blue-600 font-semibold">{label}</dt>
+    <dd className="text-gray-900 mt-1">{value}</dd>
+  </div>
+);
+
+const InterestsCell = ({ interests }: { interests: { id: string; name: string }[] }) => {
+  if (!interests.length) return <span className="text-gray-500 text-sm">—</span>;
+  const [first, ...rest] = interests;
+  const extra = rest.length;
+  const title = interests.map((i) => capitalize(i.name)).join(", ");
+  return (
+    <div className="flex items-center gap-1">
+      <span className="px-2 py-1 rounded-md bg-blue-100 text-blue-700 text-xs" title={title}>
+        {capitalize(first.name)}
+      </span>
+      {extra > 0 && (
+        <span className="px-2 py-1 rounded-md bg-blue-50 text-blue-700 text-xs cursor-pointer" title={title}>
+          +{extra}
+        </span>
+      )}
+    </div>
+  );
+};
