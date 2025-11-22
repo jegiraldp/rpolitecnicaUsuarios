@@ -3,6 +3,11 @@ import { getAccessToken } from "../auth/session";
 
 type HttpMethod = "GET" | "POST" | "PATCH" | "DELETE";
 
+// Use explicit Render URL in prod when no env is provided; keep relative /api for local dev.
+const BASE_URL =
+  API_BASE_URL?.trim() ||
+  (import.meta.env.PROD ? "https://rpolitecnicausuarios-2.onrender.com/api" : "/api");
+
 export interface RequestOptions<TBody = any> {
   path: string;
   method?: HttpMethod;
@@ -35,10 +40,11 @@ export async function http<TResponse = any, TBody = any>({
   body,
   headers = {},
 }: RequestOptions<TBody>): Promise<TResponse> {
-  const url = `${joinUrl(API_BASE_URL, path)}${buildQuery(query)}`;
+  const url = `${joinUrl(BASE_URL, path)}${buildQuery(query)}`;
   const token = getAccessToken();
   const res = await fetch(url, {
     method,
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),

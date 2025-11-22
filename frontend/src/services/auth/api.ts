@@ -14,4 +14,10 @@ export const AuthAPI = {
       body: dto,
     });
   },
+  async refresh(): Promise<StoredSession> {
+    return http<StoredSession>({
+      path: "/auth/refresh-token",
+      method: "POST",
+    });
+  },
 };

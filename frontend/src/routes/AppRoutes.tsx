@@ -7,6 +7,7 @@ const InterestsPage = lazy(() => import("../modules/interests/InterestsPage"));
 const UsersPage = lazy(() => import("../modules/users/UsersPage"));
 const CollegesPage = lazy(() => import("../modules/colleges/CollegesPage"));
 const CareersPage = lazy(() => import("../modules/careers/CareersPage"));
+const AuditsPage = lazy(() => import("../modules/audits/AuditsPage"));
 
 const AppRoutes = () => {
   return (
@@ -20,6 +21,7 @@ const AppRoutes = () => {
             <Route path="colleges" element={<CollegesPage />} />
             <Route path="interests" element={<InterestsPage />} />
             <Route path="careers" element={<CareersPage />} />
+            <Route path="audits" element={<AuditsPage />} />
             <Route path="*" element={<Navigate to="users" replace />} />
           </Route>
           <Route path="*" element={<Navigate to="/users" replace />} />

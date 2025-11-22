@@ -1,5 +1,6 @@
 import { createContext, useContext, useMemo, useState } from "react";
 import type { ReactNode } from "react";
+import { useEffect } from "react";
 import { AuthAPI, type LoginPayload } from "./api";
 import { clearSession, loadSession, persistSession, type StoredSession } from "./session";
 
@@ -40,6 +41,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     logout,
     loading,
   }), [session, loading]);
+
+  useEffect(() => {
+    let interval: number | undefined;
+
+    const tryRefresh = async () => {
+      try {
+        const refreshed = await AuthAPI.refresh();
+        persistSession(refreshed);
+        setSession(refreshed);
+      } catch {
+        // Si falla, limpiar sesión
+        clearSession();
+        setSession(null);
+      }
+    };
+
+    // Intentar rehidratar en arranque aunque session sea null (si existe cookie de refresh)
+    tryRefresh();
+
+    if (session) {
+      interval = window.setInterval(tryRefresh, 10 * 60 * 1000); // cada 10 minutos
+    }
+
+    return () => {
+      if (interval) window.clearInterval(interval);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.user.id]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

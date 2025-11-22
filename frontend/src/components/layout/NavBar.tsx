@@ -9,6 +9,7 @@ const titles: Record<string, string> = {
   interests: "Gestión de intereses",
   colleges: "Gestión de universidades",
   careers: "Gestión de carreras",
+  audits: "Auditorias",
 };
 
 const navItems: { to: string; label: string; icon: IconName }[] = [
@@ -16,6 +17,7 @@ const navItems: { to: string; label: string; icon: IconName }[] = [
   { to: "/colleges", label: "Universidades", icon: "navColleges" },
   { to: "/interests", label: "Intereses", icon: "navInterests" },
   { to: "/careers", label: "Carreras", icon: "navCareers" },
+  { to: "/audits", label: "Auditorías", icon: "navStats" },
 ] as const;
 
 export default function Navbar() {
@@ -49,10 +51,9 @@ export default function Navbar() {
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
-                `px-3 py-1.5 rounded-full text-sm font-medium flex items-center gap-2 transition ${
-                  isActive
-                    ? "bg-white border border-slate-200 text-slate-900 shadow-sm"
-                    : "text-slate-600 hover:text-slate-900"
+                `px-3 py-1.5 rounded-full text-sm font-medium flex items-center gap-2 transition ${isActive
+                  ? "bg-white border border-slate-200 text-slate-900 shadow-sm"
+                  : "text-slate-600 hover:text-slate-900"
                 }`
               }
             >

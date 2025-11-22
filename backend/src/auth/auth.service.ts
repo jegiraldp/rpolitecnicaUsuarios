@@ -8,6 +8,7 @@ import { Auth } from './entities/auth.entity';
 import { JwtService } from '@nestjs/jwt';
 import { JwtPayload } from 'src/common/interfaces/jwtInterfaces';
 import * as bcrypt from 'bcrypt';
+import type { Request, Response } from 'express';
 
 @Injectable()
 export class AuthService {
@@ -20,7 +21,56 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) { }
 
-  async login(loginDto: LoginDto) {
+  private accessExpiresIn() {
+    return process.env.JWT_EXPIRES_IN || '15m';
+  }
+
+  private refreshSecret() {
+    return process.env.REFRESH_JWT_SECRET || process.env.JWT_SECRET;
+  }
+
+  private refreshExpiresIn() {
+    return process.env.REFRESH_EXPIRES_IN || '7d';
+  }
+
+  private async signAccessToken(id: string) {
+    const payload: JwtPayload = { id };
+    return this.jwtService.signAsync(payload, { expiresIn: this.accessExpiresIn() });
+  }
+
+  private async signRefreshToken(id: string) {
+    const payload: JwtPayload = { id };
+    return this.jwtService.signAsync(payload, {
+      secret: this.refreshSecret(),
+      expiresIn: this.refreshExpiresIn(),
+    });
+  }
+
+  private setRefreshCookie(res: Response, token: string) {
+    const maxAgeMs = 7 * 24 * 60 * 60 * 1000; // 7 days
+    const secure = process.env.NODE_ENV === 'production';
+    res.cookie('refresh_token', token, {
+      httpOnly: true,
+      secure,
+      sameSite: 'lax',
+      path: '/',
+      maxAge: maxAgeMs,
+    });
+  }
+
+  private parseCookies(req: Request): Record<string, string> {
+    const header = req.headers.cookie;
+    if (!header) return {};
+    return header.split(';').reduce<Record<string, string>>((acc, part) => {
+      const [k, ...rest] = part.split('=');
+      const key = k.trim();
+      const value = rest.join('=').trim();
+      if (key) acc[key] = decodeURIComponent(value);
+      return acc;
+    }, {});
+  }
+
+  async login(loginDto: LoginDto, res: Response) {
     try {
       const username = loginDto.username.toLowerCase();
 
@@ -39,14 +89,61 @@ export class AuthService {
         .getOne();
 
       if (!user) throw new UnauthorizedException('Usuario no existe');
-      console.log(user)
       if (!user.isActive) throw new UnauthorizedException('Usuario inactivo');
 
       const isValid = await bcrypt.compare(loginDto.password, credentials.password);
       if (!isValid) throw new UnauthorizedException('Credenciales inválidas');
 
-      const payload: JwtPayload = { id: user.id };
-      const accessToken = await this.jwtService.signAsync(payload);
+      const accessToken = await this.signAccessToken(user.id);
+      const refreshToken = await this.signRefreshToken(user.id);
+      this.setRefreshCookie(res, refreshToken);
+
+      return {
+        accessToken,
+        user: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          country: user.country,
+          role: credentials.role,
+        },
+      };
+    } catch (error) {
+      handleException(error, this.logger);
+    }
+  }
+
+  async refreshToken(req: Request, res: Response) {
+    try {
+      const cookies = this.parseCookies(req);
+      const refreshFromCookie = cookies['refresh_token'];
+      if (!refreshFromCookie) throw new UnauthorizedException('Refresh token no encontrado');
+
+      const decoded = await this.jwtService.verifyAsync<JwtPayload>(refreshFromCookie, {
+        secret: this.refreshSecret(),
+      });
+      const userId = decoded.id;
+
+      const user = await this.userRepository
+        .createQueryBuilder('user')
+        .leftJoinAndSelect('user.college', 'college')
+        .leftJoinAndSelect('user.career', 'career')
+        .leftJoinAndSelect('user.interests', 'interests')
+        .addSelect('user.isActive')
+        .where('user.id = :id', { id: userId })
+        .getOne();
+
+      if (!user) throw new UnauthorizedException('Usuario no encontrado');
+      if (!user.isActive) throw new UnauthorizedException('Usuario inactivo');
+
+      const credentials = await this.authRepository.findOne({
+        where: { user: { id: user.id } },
+      });
+      if (!credentials) throw new UnauthorizedException('Usuario no encontrado');
+
+      const accessToken = await this.signAccessToken(user.id);
+      const newRefreshToken = await this.signRefreshToken(user.id);
+      this.setRefreshCookie(res, newRefreshToken);
 
       return {
         accessToken,
