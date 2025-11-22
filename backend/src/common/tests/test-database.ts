@@ -40,6 +40,8 @@ export class TestDatabaseManager {
             }).compile()
 
             this.app = this.module.createNestApplication();
+            // Bypass auth guards in E2E context
+            this.app.useGlobalGuards({ canActivate: () => true } as any);
             await this.app.init()
 
             const seedService = this.module.get<SeedService>(SeedService);

@@ -3,11 +3,13 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { FindUsersDto } from './dto/find-users.dto';
+import { Auth } from 'src/common/decorators/auth.decorator';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @Auth()
   @Post()
   create(@Body() dto: CreateUserDto) {
     return this.usersService.create(dto);
@@ -23,11 +25,13 @@ export class UsersController {
     return this.usersService.findOne(id);
   }
 
+  @Auth()
   @Patch(':id')
   update(@Param('id') id: string, @Body() dto: UpdateUserDto) {
     return this.usersService.update(id, dto);
   }
 
+  @Auth()
   @Patch(':id/deactivate')
   deactivate(@Param('id') id: string) {
     return this.usersService.deactivate(id);

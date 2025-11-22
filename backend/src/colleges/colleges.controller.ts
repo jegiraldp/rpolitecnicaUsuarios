@@ -3,11 +3,13 @@ import { CollegesService } from './colleges.service';
 import { CreateCollegeDto } from './dto/create-college.dto';
 import { UpdateCollegeDto } from './dto/update-college.dto';
 import { FindCollegesDto } from './dto/find-colleges.dto';
+import { Auth } from 'src/common/decorators/auth.decorator';
 
 @Controller('colleges')
 export class CollegesController {
   constructor(private readonly collegesService: CollegesService) {}
 
+  @Auth()
   @Post()
   create(@Body() createCollegeDto: CreateCollegeDto) {
     return this.collegesService.create(createCollegeDto);
@@ -23,11 +25,13 @@ export class CollegesController {
     return this.collegesService.findOne(id);
   }
 
+  @Auth()
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateCollegeDto: UpdateCollegeDto) {
     return this.collegesService.update(id, updateCollegeDto);
   }
 
+  @Auth()
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.collegesService.remove(id);

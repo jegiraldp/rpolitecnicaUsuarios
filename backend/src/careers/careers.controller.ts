@@ -25,14 +25,15 @@ export class CareersController {
     return this.careersService.findOne(id);
   }
 
+  @Auth()
   @Patch(':id')
   update(@Param('id') id: string, @Body() dto: UpdateCareerDto) {
     return this.careersService.update(id, dto);
   }
 
+  @Auth()
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.careersService.remove(id);
   }
 }
-
