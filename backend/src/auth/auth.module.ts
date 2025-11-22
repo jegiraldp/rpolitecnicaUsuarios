@@ -18,10 +18,7 @@ import { Auth } from './entities/auth.entity';
       inject: [ConfigService],
       useFactory(configService: ConfigService) {
         return {
-          secret: configService.get('JWT_SECRET'),
-          signOptions: {
-            expiresIn: '4h',
-          },
+          secret: configService.get<string>('JWT_SECRET'),
         };
       },
     }),

@@ -9,6 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 import { JwtPayload } from 'src/common/interfaces/jwtInterfaces';
 import * as bcrypt from 'bcrypt';
 import type { Request, Response } from 'express';
+import type { StringValue } from 'ms';
 
 @Injectable()
 export class AuthService {
@@ -21,30 +22,36 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) { }
 
-  private accessExpiresIn() {
-    return process.env.JWT_EXPIRES_IN || '15m';
+  private accessExpiresIn(): StringValue | number {
+    const expiresIn = process.env.JWT_EXPIRES_IN;
+    return (expiresIn ?? '15m') as StringValue | number;
   }
 
   private refreshSecret() {
     return process.env.REFRESH_JWT_SECRET || process.env.JWT_SECRET;
   }
 
-  private refreshExpiresIn() {
-    return process.env.REFRESH_EXPIRES_IN || '7d';
+  private refreshExpiresIn(): StringValue | number {
+    const expiresIn = process.env.REFRESH_EXPIRES_IN;
+    return (expiresIn ?? '7d') as StringValue | number;
   }
 
   private async signAccessToken(id: string) {
-    const payload: JwtPayload = { id };
+    const payload: JwtPayload = { id: id.toString() };
     return this.jwtService.signAsync(payload, { expiresIn: this.accessExpiresIn() });
   }
 
-  private async signRefreshToken(id: string) {
-    const payload: JwtPayload = { id };
-    return this.jwtService.signAsync(payload, {
-      secret: this.refreshSecret(),
+  private readonly refreshJwt = new JwtService({
+    secret: this.refreshSecret(),
+    signOptions: {
       expiresIn: this.refreshExpiresIn(),
-    });
+    },
+  });
+
+  private async signRefreshToken(id: string) {
+    return this.refreshJwt.signAsync({ id: id.toString() });
   }
+
 
   private setRefreshCookie(res: Response, token: string) {
     const maxAgeMs = 7 * 24 * 60 * 60 * 1000; // 7 days
