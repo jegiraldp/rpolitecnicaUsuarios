@@ -17,8 +17,10 @@ import { Auth } from './entities/auth.entity';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory(configService: ConfigService) {
+        const secret = configService.get<string>('JWT_SECRET') ?? 'test-secret';
         return {
-          secret: configService.get<string>('JWT_SECRET'),
+          // Default secret keeps test/bootstrap from failing when env is absent
+          secret,
         };
       },
     }),

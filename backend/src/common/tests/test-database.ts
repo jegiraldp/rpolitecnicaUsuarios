@@ -12,6 +12,7 @@ import { Career } from "../../careers/entities/career.entity";
 import { CareersModule } from "../../careers/careers.module";
 import { User } from "../../users/entities/user.entity";
 import { UsersModule } from "../../users/users.module";
+import { JwtStrategy } from "src/auth/strategies/jwtStrategy";
 export class TestDatabaseManager {
     private static module: TestingModule;
     private static app: INestApplication;
@@ -77,10 +78,10 @@ export class TestDatabaseManager {
                 UsersModule,
             ],
             providers: [SeedService]
-        }).compile();
-
-        // const dataSource = this.module.get<DataSource>(DataSource);
-        // await dataSource.query('PRAGMA foreign_keys = ON;');
+        })
+            .overrideProvider(JwtStrategy) 
+            .useValue({})                  
+            .compile();
 
         const seedService = this.module.get<SeedService>(SeedService);
         await seedService.executeSEED();

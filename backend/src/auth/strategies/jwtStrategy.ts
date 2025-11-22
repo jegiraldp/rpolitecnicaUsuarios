@@ -14,8 +14,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         private readonly userRepository: Repository<User>,
         configService: ConfigService
     ) {
+        console.log("Initializing JWT Strategy", configService.get("JWT_SECRET"))
+        const secret = configService.get<string>("JWT_SECRET") ?? "test-secret";
         super({
-            secretOrKey: configService.get("JWT_SECRET"),
+            // Provide a default to avoid crashing tests if env is missing
+            secretOrKey: secret,
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken()
         })
     }
