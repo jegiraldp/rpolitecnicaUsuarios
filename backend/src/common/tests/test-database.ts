@@ -21,17 +21,14 @@ export class TestDatabaseManager {
         if (!this.initialized) {
             this.module = await Test.createTestingModule({
                 imports: [
-                    ConfigModule.forRoot({ envFilePath: '../.env.test', isGlobal: true }),
+                    ConfigModule.forRoot({ envFilePath: '../.env', isGlobal: true }),
                     TypeOrmModule.forRoot({
-                        type: "mysql",
-                        host: process.env.DB_HOST,
-                        port: +process.env.DB_PORT!,
-                        database: process.env.MYSQL_DATABASE,
-                        username: process.env.MYSQL_USER,
-                        password: process.env.MYSQL_PASSWORD,
+                        type: "sqlite",
+                        database: ":memory:",
                         entities: [College, Interest, Career, User],
                         synchronize: true,
-                        dropSchema: true
+                        dropSchema: true,
+                        extra: { pragma: "FOREIGN_KEYS=ON;" }
                     }),
                     TypeOrmModule.forFeature([College, Interest, Career, User]),
                     CollegesModule,
@@ -48,6 +45,7 @@ export class TestDatabaseManager {
             const seedService = this.module.get<SeedService>(SeedService);
             await seedService.executeSEED();
 
+            this.initialized = true;
         }
 
         return {
@@ -59,7 +57,7 @@ export class TestDatabaseManager {
     static async initializeInt(): Promise<TestingModule> {
         this.module = await Test.createTestingModule({
             imports: [
-                ConfigModule.forRoot({ envFilePath: '../.env.test', isGlobal: true }),
+                ConfigModule.forRoot({ envFilePath: '../.env', isGlobal: true }),
                 TypeOrmModule.forRoot({
                     type: "sqlite",
                     database: ":memory:",

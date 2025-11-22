@@ -47,9 +47,9 @@ describe('CollegesService', () => {
    describe('Find colleges', () => {
      it('should return all colleges', async () => {
        const list = await services.collegeServices.findAll({ page: 1, limit: 10 } as any);
+
        expect(list).toBeDefined();
        expect(Array.isArray(list?.data)).toBe(true);
-       // seeded with 5 by SeedService
        expect(list?.data.length).toBe(5);
        expect(list?.meta.total).toBeGreaterThanOrEqual(5);
      });

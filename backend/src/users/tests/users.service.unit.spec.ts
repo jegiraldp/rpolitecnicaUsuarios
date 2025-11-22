@@ -51,7 +51,6 @@ describe('UsersService - Unit', () => {
       const qb = mockUserRepo.createQueryBuilder();
       qb.getManyAndCount.mockResolvedValue([items, items.length]);
       const res = await service.findAll({ page: 1, limit: 10, username: 'jo' } as any);
-      console.log(res);
       expect(res?.data).toHaveLength(1);
       expect(res?.meta.total).toBe(1);
     });

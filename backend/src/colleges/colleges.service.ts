@@ -114,7 +114,8 @@ export class CollegesService {
       if (!existing) {
         throw new NotFoundException('Institución no encontrada');
       }
-      return await this.collegeRepository.remove(existing);
+      await this.collegeRepository.delete(id);
+      return existing;
     } catch (error) {
       handleException(error, this.logger);
     }

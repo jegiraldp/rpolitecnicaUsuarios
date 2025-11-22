@@ -7,6 +7,7 @@ export const mockCareerRepo = {
   findAndCount: jest.fn(),
   findOne: jest.fn(),
   remove: jest.fn(),
+  delete: jest.fn(),
   createQueryBuilder: jest.fn(() => ({
     where: jest.fn().mockReturnThis(),
     andWhere: jest.fn().mockReturnThis(),

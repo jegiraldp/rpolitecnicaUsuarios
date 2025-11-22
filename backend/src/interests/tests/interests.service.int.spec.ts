@@ -1,9 +1,9 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { TestingModule } from '@nestjs/testing';
 import { TestDatabaseManager } from '../../common/tests/test-database';
 import { TestHelpers, TestRepositories, TestServices } from '../../common/tests/test-helpers';
-import { SeedService } from '../../common/seed/seedService';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { InterestMother } from './interests.mother';
+import { SeedService } from 'src/common/tests/seed/seedService';
 
 describe('InterestsService - INT', () => {
   let services: TestServices;

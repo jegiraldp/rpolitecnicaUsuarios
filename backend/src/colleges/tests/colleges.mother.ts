@@ -17,7 +17,8 @@ export class CollegeMother {
     async createMany(count: number, overrides?: Partial<College>): Promise<College[]> {
         const colleges: College[] = [];
         for (let i = 0; i < count; i++) {
-            const dto = CollegeMother.dto(overrides);
+            const name = overrides?.name ?? `default-name-${i}`;
+            const dto = CollegeMother.dto({ ...overrides, name });
             const college = await this.collgeService.create(dto as College);
             colleges.push(college!);
         }

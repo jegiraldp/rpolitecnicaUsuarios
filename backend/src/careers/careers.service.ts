@@ -104,7 +104,8 @@ export class CareersService {
     try {
       const existing = await this.careerRepository.findOne({ where: { id } });
       if (!existing) throw new NotFoundException('Carrera no encontrada');
-      return await this.careerRepository.remove(existing);
+      await this.careerRepository.delete(id);
+      return existing;
     } catch (error) {
       handleException(error, this.logger);
     }

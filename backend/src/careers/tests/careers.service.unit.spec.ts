@@ -89,9 +89,9 @@ describe('CareersService - Unit', () => {
     it('hard deletes the record', async () => {
       const existing = { id: 'cid', name: 'old' };
       mockCareerRepo.findOne.mockResolvedValue(existing);
-      mockCareerRepo.remove.mockResolvedValue(existing);
+      mockCareerRepo.delete.mockResolvedValue({ affected: 1 });
       const res = await service.remove('cid');
-      expect(mockCareerRepo.remove).toHaveBeenCalledWith(existing);
+      expect(mockCareerRepo.delete).toHaveBeenCalledWith('cid');
       expect(res?.id).toBe('cid');
     });
   });

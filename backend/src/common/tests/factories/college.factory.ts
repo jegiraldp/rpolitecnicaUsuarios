@@ -8,13 +8,13 @@ export class CollegeFactory {
         });
     }
 
-    static createMany(collegeRepository: Repository<College>, count: number): College[] {
+    static async createMany(collegeRepository: Repository<College>, count: number): Promise<College[]> {
         const colleges: College[] = [];
         for (let i = 0; i < count; i++) {
             const college = this.create(collegeRepository, { name: `college-${i}` });
             colleges.push(college);
         }
-        return colleges;
+        return collegeRepository.save(colleges);
     }
 
 }

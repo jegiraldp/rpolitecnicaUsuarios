@@ -142,11 +142,11 @@ describe('CollegesService', () => {
     it('should hard delete a college', async () => {
       const existing: Partial<College> = { id: 'uuid-1', name: 'name', isActive: true } as any;
       mockCollegeRepo.findOne.mockResolvedValue(existing);
-      mockCollegeRepo.remove.mockResolvedValue(existing as College);
+      mockCollegeRepo.delete.mockResolvedValue({ affected: 1 });
 
       const response = await collegeService.remove('uuid-1');
       expect(response).toBeDefined();
-      expect(mockCollegeRepo.remove).toHaveBeenCalledWith(existing);
+      expect(mockCollegeRepo.delete).toHaveBeenCalledWith('uuid-1');
       expect(response?.id).toBe('uuid-1');
     });
 

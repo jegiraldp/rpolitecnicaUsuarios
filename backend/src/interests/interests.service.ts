@@ -104,7 +104,8 @@ export class InterestsService {
     try {
       const existing = await this.interestRepository.findOne({ where: { id } });
       if (!existing) throw new NotFoundException('Interés no encontrado');
-      return await this.interestRepository.remove(existing);
+      await this.interestRepository.delete(id);
+      return existing;
     } catch (error) {
       handleException(error, this.logger);
     }

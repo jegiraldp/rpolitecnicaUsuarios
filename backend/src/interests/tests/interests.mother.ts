@@ -15,7 +15,8 @@ export class InterestMother {
   async createMany(count: number, overrides?: Partial<Interest>): Promise<Interest[]> {
     const interests: Interest[] = [];
     for (let i = 0; i < count; i++) {
-      const dto = InterestMother.dto(overrides);
+      const name = overrides?.name ?? `default-interest-${i}`;
+      const dto = InterestMother.dto({ ...overrides, name });
       const interest = await this.interestsService.create(dto as Interest);
       interests.push(interest!);
     }

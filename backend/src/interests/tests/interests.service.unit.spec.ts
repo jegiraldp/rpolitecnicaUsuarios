@@ -89,9 +89,9 @@ describe('InterestsService - Unit', () => {
     it('performs a hard delete', async () => {
       const existing = { id: 'iid', name: 'old' };
       mockInterestRepo.findOne.mockResolvedValue(existing);
-      mockInterestRepo.remove.mockResolvedValue(existing);
+      mockInterestRepo.delete.mockResolvedValue({ affected: 1 });
       const res = await service.remove('iid');
-      expect(mockInterestRepo.remove).toHaveBeenCalledWith(existing);
+      expect(mockInterestRepo.delete).toHaveBeenCalledWith('iid');
       expect(res?.id).toBe('iid');
     });
   });

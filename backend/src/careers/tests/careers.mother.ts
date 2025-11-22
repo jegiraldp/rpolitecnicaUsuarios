@@ -15,11 +15,11 @@ export class CareerMother {
   async createMany(count: number, overrides?: Partial<Career>): Promise<Career[]> {
     const careers: Career[] = [];
     for (let i = 0; i < count; i++) {
-      const dto = CareerMother.dto(overrides);
+      const name = overrides?.name ?? `default-career-${i}`;
+      const dto = CareerMother.dto({ ...overrides, name });
       const career = await this.careersService.create(dto as Career);
       careers.push(career!);
     }
     return careers;
   }
 }
-
