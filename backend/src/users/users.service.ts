@@ -97,6 +97,9 @@ export class UsersService {
         },
       };
     } catch (error) {
+      console.log(error
+        
+      )
       handleException(error, this.logger);
     }
   }
