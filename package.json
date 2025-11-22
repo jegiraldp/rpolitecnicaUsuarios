@@ -9,11 +9,11 @@
   ],
   "main": "index.js",
   "scripts": {
-    "dev": "concurrently \"npm run start:dev -w backend\" \"npm run dev -w frontend\"",
-    "dev:frontend": "npm run dev -w frontend",
-    "dev:backend": "npm run start:dev -w backend",
-    "build": "npm run build -w backend && npm run build -w frontend",
-    "install:all": "npm install"
+    "dev": "concurrently \"yarn workspace backend start:dev\" \"yarn workspace frontend dev\"",
+    "dev:frontend": "yarn workspace frontend dev",
+    "dev:backend": "yarn workspace backend start:dev",
+    "build": "yarn workspace backend build && yarn workspace frontend build",
+    "install:all": "yarn install"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

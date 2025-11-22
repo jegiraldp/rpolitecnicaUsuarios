@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TestHelpers, TestRepositories, TestServices } from '../../common/tests/test-helpers';
 import { TestDatabaseManager } from '../../common/tests/test-database';
-import { SeedService } from '../../common/seed/seedService';
 import { CollegeMother } from './colleges.mother';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { SeedService } from 'src/common/tests/seed/seedService';
 
 describe('CollegesService', () => {
   let services: TestServices

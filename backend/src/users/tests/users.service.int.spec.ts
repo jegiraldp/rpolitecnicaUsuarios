@@ -1,7 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TestDatabaseManager } from '../../common/tests/test-database';
 import { TestHelpers, TestRepositories, TestServices } from '../../common/tests/test-helpers';
-import { SeedService } from '../../common/seed/seedService';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { UserMother } from './users.mother';
 import { CollegeMother } from '../../colleges/tests/colleges.mother';
@@ -11,6 +10,7 @@ import { UsersService } from '../users.service';
 import { CollegesService } from '../../colleges/colleges.service';
 import { InterestsService } from '../../interests/interests.service';
 import { CareersService } from '../../careers/careers.service';
+import { SeedService } from 'src/common/tests/seed/seedService';
 
 describe('UsersService - INT', () => {
   let services: TestServices;

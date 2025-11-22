@@ -1,0 +1,30 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: ["main" ]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "yarn"
+      - name: Install deps
+        run: yarn install:all --frozen-lockfile
+
+      - name: Unit tests
+        run: yarn workspace backend test:unit
+
+      - name: Integration tests
+        run: yarn workspace backend test:int
+
+      - name: End-to-end tests
+        run: yarn workspace backend test:e2e

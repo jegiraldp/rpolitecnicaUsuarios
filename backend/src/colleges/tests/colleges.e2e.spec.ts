@@ -2,10 +2,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CollegesService } from '../colleges.service';
 import { INestApplication } from '@nestjs/common';
 import { TestHelpers, TestRepositories, TestServices } from '../../common/tests/test-helpers';
-import { SeedService } from '../../common/seed/seedService';
+
 import { TestDatabaseManager } from '../../common/tests/test-database';
 import { CollegeMother } from './colleges.mother';
 import * as request from 'supertest';
+import { SeedService } from 'src/common/tests/seed/seedService';
 
 describe('CollegesService', () => {
     let module: TestingModule;

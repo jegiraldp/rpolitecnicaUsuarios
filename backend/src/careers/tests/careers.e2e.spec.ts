@@ -3,9 +3,9 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { TestDatabaseManager } from '../../common/tests/test-database';
 import { TestHelpers, TestRepositories, TestServices } from '../../common/tests/test-helpers';
-import { SeedService } from '../../common/seed/seedService';
 import { CareerMother } from './careers.mother';
 import { CareersService } from '../careers.service';
+import { SeedService } from 'src/common/tests/seed/seedService';
 
 describe('Careers - E2E', () => {
   let module: TestingModule;
