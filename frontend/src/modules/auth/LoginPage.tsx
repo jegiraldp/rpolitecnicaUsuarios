@@ -1,15 +1,23 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/services/auth/AuthProvider";
 
 export default function LoginPage() {
-  const { login, loading } = useAuth();
+  const { login, loading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    if(isAuthenticated){
+      const from = (location.state as any)?.from || "/users";
+      navigate(from, { replace: true });
+    }
+
+  }, [])
+  
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();

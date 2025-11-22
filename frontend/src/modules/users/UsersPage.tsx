@@ -28,6 +28,9 @@ const initials = (name: string) => {
 
 const capitalize = (s?: string | null) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : "");
 
+const initialsBadgeClass =
+  "flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-700 text-sm font-semibold uppercase";
+
 type UserForm = {
   username: string;
   email: string;
@@ -195,7 +198,6 @@ export default function UsersPage() {
     try {
       setLoading(true);
       setError(null);
-      // Users do not have hard delete; perform deactivate
       await UsersAPI.deactivate(toDelete.id);
       await load();
       setConfirmOpen(false);
@@ -216,7 +218,7 @@ export default function UsersPage() {
         const inits = initials(u.username);
         return (
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-sm font-semibold">
+            <div className={initialsBadgeClass}>
               {inits}
             </div>
             <div className="leading-tight">
@@ -484,7 +486,7 @@ export default function UsersPage() {
         {viewUser && (
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <div className="h-12 w-12 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-lg font-semibold">
+              <div className={initialsBadgeClass}>
                 {initials(viewUser.username)}
               </div>
               <div>
