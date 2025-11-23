@@ -15,6 +15,14 @@ describe('CollegesService', () => {
     let services: TestServices
     let repositories: TestRepositories
     let collegeMother: CollegeMother
+    let authHeaders: Record<string, string>
+
+    const login = async () => {
+        const res = await request(server)
+            .post('/auth/login')
+            .send({ username: 'admin', password: 'Admin123*' });
+        authHeaders = { Authorization: `Bearer ${res.body.accessToken}` };
+    }
 
     beforeAll(async () => {
         const testDB = await TestDatabaseManager.initializeE2E()
@@ -27,20 +35,24 @@ describe('CollegesService', () => {
 
         services = TestHelpers.getServices(module)
         repositories = TestHelpers.getRepositories(module)
+        await TestHelpers.setupTestData(module.get<SeedService>(SeedService));
+        await login();
     })
 
     afterAll(async () => {
         await TestDatabaseManager.cleanUp();
     });
 
-    afterEach(async () => {
+    beforeEach(async () => {
         await TestHelpers.setupTestData(module.get<SeedService>(SeedService));
+        await login();
     });
 
     describe('POST /colleges', () => {
         it("should create a new college", async () => {
             const response = await request(server)
                 .post('/colleges')
+                .set(authHeaders)
                 .send(CollegeMother.dto())
             expect(response.status).toBe(201)
             expect(response.body.name).toBe(CollegeMother.dto().name)
@@ -49,6 +61,7 @@ describe('CollegesService', () => {
             const [college] = await collegeMother.createMany(1);
             const response = await request(server)
                 .post('/colleges')
+                .set(authHeaders)
                 .send({ ...CollegeMother.dto(), name: college.name })
             expect(response.status).toBe(400)
         })
@@ -93,6 +106,7 @@ describe('CollegesService', () => {
             const [anyCollege] = await collegeMother.createMany(1, { name: 'old-name' });
             const res = await request(server)
                 .patch(`/colleges/${anyCollege!.id}`)
+                .set(authHeaders)
                 .send({ name: 'Updated Name' });
             expect(res.status).toBe(200);
             expect(res.body?.name).toBe('updated name');
@@ -104,6 +118,7 @@ describe('CollegesService', () => {
             const [b] = await collegeMother.createMany(1, { name: 'b-college' });
             const res = await request(server)
                 .patch(`/colleges/${a!.id}`)
+                .set(authHeaders)
                 .send({ name: b!.name });
             expect(res.status).toBe(400);
         });
@@ -114,6 +129,7 @@ describe('CollegesService', () => {
             const [anyCollege] = await collegeMother.createMany(1, { name: 'to-delete' });
             const res = await request(server)
                 .delete(`/colleges/${anyCollege!.id}`)
+                .set(authHeaders)
                 .send();
             expect(res.status).toBe(200);
             expect(res.body?.id).toBe(anyCollege?.id);

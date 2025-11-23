@@ -14,6 +14,14 @@ describe('Interests - E2E', () => {
   let services: TestServices;
   let repositories: TestRepositories;
   let interestMother: InterestMother;
+  let authHeaders: Record<string, string>;
+
+  const login = async () => {
+    const res = await request(server)
+      .post('/auth/login')
+      .send({ username: 'admin', password: 'Admin123*' });
+    authHeaders = { Authorization: `Bearer ${res.body.accessToken}` };
+  };
 
   beforeAll(async () => {
     const testDB = await TestDatabaseManager.initializeE2E();
@@ -25,25 +33,28 @@ describe('Interests - E2E', () => {
     interestMother = new InterestMother(
       module.get<InterestsService>(InterestsService),
     );
+    await TestHelpers.setupTestData(module.get<SeedService>(SeedService));
+    await login();
   });
 
   afterAll(async () => {
     await TestDatabaseManager.cleanUp();
   });
 
-  afterEach(async () => {
+  beforeEach(async () => {
     await TestHelpers.setupTestData(module.get<SeedService>(SeedService));
+    await login();
   });
 
   describe('POST /interests', () => {
     it('creates an interest', async () => {
-      const res = await request(server).post('/interests').send(InterestMother.dto());
+      const res = await request(server).post('/interests').set(authHeaders).send(InterestMother.dto());
       expect(res.status).toBe(201);
       expect(res.body?.name).toBe(InterestMother.dto().name);
     });
     it('rejects duplicate name', async () => {
       await interestMother.createMany(1, { name: 'dup' } as any);
-      const res = await request(server).post('/interests').send(InterestMother.dto({ name: 'dup' }));
+      const res = await request(server).post('/interests').set(authHeaders).send(InterestMother.dto({ name: 'dup' }));
       expect(res.status).toBe(400);
     });
   });
@@ -78,7 +89,7 @@ describe('Interests - E2E', () => {
   describe('PATCH /interests/:id', () => {
     it('updates and sets updatedAt', async () => {
       const [created] = await interestMother.createMany(1, { name: 'history' } as any);
-      const res = await request(server).patch(`/interests/${created!.id}`).send({ name: 'Modern History' });
+      const res = await request(server).patch(`/interests/${created!.id}`).set(authHeaders).send({ name: 'Modern History' });
       expect(res.status).toBe(200);
       expect(res.body?.name).toBe('modern history');
       expect(res.body?.updatedAt).toBeDefined();
@@ -88,7 +99,7 @@ describe('Interests - E2E', () => {
   describe('DELETE /interests/:id', () => {
     it('hard deletes the interest', async () => {
       const [created] = await interestMother.createMany(1, { name: 'to-del' } as any);
-      const res = await request(server).delete(`/interests/${created!.id}`);
+      const res = await request(server).delete(`/interests/${created!.id}`).set(authHeaders);
       expect(res.status).toBe(200);
       expect(res.body?.id).toBe(created?.id);
 

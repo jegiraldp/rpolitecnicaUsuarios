@@ -14,10 +14,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         private readonly userRepository: Repository<User>,
         configService: ConfigService
     ) {
-        console.log("Initializing JWT Strategy", configService.get("JWT_SECRET"))
-        const secret = configService.get<string>("JWT_SECRET") ?? "test-secret";
+        const secret = configService.get<string>("JWT_SECRET");
         super({
-            // Provide a default to avoid crashing tests if env is missing
             secretOrKey: secret,
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken()
         })
@@ -34,7 +32,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
             .where("user.id=:id", { id })
             .getOne()
         if (!user) throw new UnauthorizedException("Token no válido")
-        console.log(user)
         if (!user.isActive) throw new UnauthorizedException("Usuario no disponible")
         return user
     }

@@ -13,6 +13,8 @@ import { CareersModule } from "../../careers/careers.module";
 import { User } from "../../users/entities/user.entity";
 import { UsersModule } from "../../users/users.module";
 import { JwtStrategy } from "src/auth/strategies/jwtStrategy";
+import { Auth } from "src/auth/entities/auth.entity";
+import { AuthModule } from "src/auth/auth.module";
 export class TestDatabaseManager {
     private static module: TestingModule;
     private static app: INestApplication;
@@ -26,16 +28,17 @@ export class TestDatabaseManager {
                     TypeOrmModule.forRoot({
                         type: "sqlite",
                         database: ":memory:",
-                        entities: [College, Interest, Career, User],
+                        entities: [College, Interest, Career, User, Auth],
                         synchronize: true,
                         dropSchema: true,
                         extra: { pragma: "FOREIGN_KEYS=ON;" }
                     }),
-                    TypeOrmModule.forFeature([College, Interest, Career, User]),
+                    TypeOrmModule.forFeature([College, Interest, Career, User, Auth]),
                     CollegesModule,
                     InterestsModule,
                     CareersModule,
                     UsersModule,
+                    AuthModule,
                 ],
                 providers: [SeedService]
             }).compile()
@@ -44,6 +47,13 @@ export class TestDatabaseManager {
             // Bypass auth guards in E2E context
             this.app.useGlobalGuards({ canActivate: () => true } as any);
             await this.app.init()
+            // Prevent supertest from trying to bind sockets (sandbox restriction)
+            const httpServer: any = this.app.getHttpServer();
+            httpServer.address = () => ({ port: 0 });
+            httpServer.listen = (_port: number, cb?: () => void) => {
+                cb?.();
+                return httpServer;
+            };
 
             const seedService = this.module.get<SeedService>(SeedService);
             await seedService.executeSEED();
@@ -64,18 +74,19 @@ export class TestDatabaseManager {
                 TypeOrmModule.forRoot({
                     type: "sqlite",
                     database: ":memory:",
-                    entities: [College, Interest, Career, User],
+                    entities: [College, Interest, Career, User, Auth],
                     synchronize: true,
                     dropSchema: true,
                     extra: {
                         pragma: "FOREIGN_KEYS=ON;"
                     }
                 }),
-                TypeOrmModule.forFeature([College, Interest, Career, User]),
+                TypeOrmModule.forFeature([College, Interest, Career, User, Auth]),
                 CollegesModule,
                 InterestsModule,
                 CareersModule,
                 UsersModule,
+                AuthModule,
             ],
             providers: [SeedService]
         })

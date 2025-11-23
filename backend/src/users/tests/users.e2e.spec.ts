@@ -23,6 +23,15 @@ describe('Users - E2E', () => {
   let collegeMother: CollegeMother;
   let interestMother: InterestMother;
   let careerMother: CareerMother;
+  let authHeaders: Record<string, string>;
+
+  const login = async () => {
+    const res = await request(server)
+      .post('/auth/login')
+      .send({ username: 'admin', password: 'Admin123*' });
+    authHeaders = { Authorization: `Bearer ${res.body.accessToken}` };
+  };
+  
 
   beforeAll(async () => {
     const testDB = await TestDatabaseManager.initializeE2E();
@@ -35,14 +44,17 @@ describe('Users - E2E', () => {
     collegeMother = new CollegeMother(module.get<CollegesService>(CollegesService));
     interestMother = new InterestMother(module.get<InterestsService>(InterestsService));
     careerMother = new CareerMother(module.get<CareersService>(CareersService));
+    await TestHelpers.setupTestData(module.get<SeedService>(SeedService));
+    await login();
   });
 
   afterAll(async () => {
     await TestDatabaseManager.cleanUp();
   });
 
-  afterEach(async () => {
+  beforeEach(async () => {
     await TestHelpers.setupTestData(module.get<SeedService>(SeedService));
+    await login();
   });
 
   describe('POST /users', () => {
@@ -51,7 +63,7 @@ describe('Users - E2E', () => {
       const [career] = await careerMother.createMany(1, { name: 'software' } as any);
       const [interest] = await interestMother.createMany(1, { name: 'ai' } as any);
 
-      const res = await request(server).post('/users').send(UserMother.dto({
+      const res = await request(server).post('/users').set(authHeaders).send(UserMother.dto({
         username: 'john',
         email: 'john@example.com',
         collegeId: college!.id,
@@ -67,8 +79,8 @@ describe('Users - E2E', () => {
 
   describe('GET /users', () => {
     it('lists with pagination and filters', async () => {
-      await request(server).post('/users').send(UserMother.dto({ username: 'alice', email: 'alice@example.com' }));
-      await request(server).post('/users').send(UserMother.dto({ username: 'bob', email: 'bob@example.com' }));
+      await request(server).post('/users').set(authHeaders).send(UserMother.dto({ username: 'alice', email: 'alice@example.com' }));
+      await request(server).post('/users').set(authHeaders).send(UserMother.dto({ username: 'bob', email: 'bob@example.com' }));
       const res = await request(server).get('/users?page=1&limit=1&username=a');
       expect(res.status).toBe(200);
       expect(Array.isArray(res.body.data)).toBe(true);
@@ -79,7 +91,7 @@ describe('Users - E2E', () => {
 
   describe('GET /users/:id', () => {
     it('returns one by id', async () => {
-      const created = await request(server).post('/users').send(UserMother.dto({ username: 'cid', email: 'cid@example.com' }));
+      const created = await request(server).post('/users').set(authHeaders).send(UserMother.dto({ username: 'cid', email: 'cid@example.com' }));
       const res = await request(server).get(`/users/${created.body.id}`);
       expect(res.status).toBe(200);
       expect(res.body?.id).toBe(created.body.id);
@@ -88,16 +100,16 @@ describe('Users - E2E', () => {
 
   describe('PATCH /users/:id', () => {
     it('updates and sets updatedAt', async () => {
-      const created = await request(server).post('/users').send(UserMother.dto({ username: 'old', email: 'old@example.com' }));
-      const res = await request(server).patch(`/users/${created.body.id}`).send({ username: 'new' });
+      const created = await request(server).post('/users').set(authHeaders).send(UserMother.dto({ username: 'old', email: 'old@example.com' }));
+      const res = await request(server).patch(`/users/${created.body.id}`).set(authHeaders).send({ username: 'new' });
       expect(res.status).toBe(200);
       expect(res.body?.username).toBe('new');
       expect(res.body?.updatedAt).toBeDefined();
     });
     it('updates relations', async () => {
-      const created = await request(server).post('/users').send(UserMother.dto({ username: 'rel', email: 'rel@example.com' }));
+      const created = await request(server).post('/users').set(authHeaders).send(UserMother.dto({ username: 'rel', email: 'rel@example.com' }));
       const [i1] = await interestMother.createMany(1, { name: 'math' } as any);
-      const res = await request(server).patch(`/users/${created.body.id}`).send({ interestIds: [i1!.id] });
+      const res = await request(server).patch(`/users/${created.body.id}`).set(authHeaders).send({ interestIds: [i1!.id] });
       expect(res.status).toBe(200);
       expect(res.body?.interests?.length).toBe(1);
     });
@@ -105,8 +117,8 @@ describe('Users - E2E', () => {
 
   describe('PATCH /users/:id/deactivate', () => {
     it('deactivates user', async () => {
-      const created = await request(server).post('/users').send(UserMother.dto({ username: 'act', email: 'act@example.com' }));
-      const res = await request(server).patch(`/users/${created.body.id}/deactivate`).send();
+      const created = await request(server).post('/users').set(authHeaders).send(UserMother.dto({ username: 'act', email: 'act@example.com' }));
+      const res = await request(server).patch(`/users/${created.body.id}/deactivate`).set(authHeaders).send();
       expect(res.status).toBe(200);
       expect(res.body?.isActive).toBe(false);
     });

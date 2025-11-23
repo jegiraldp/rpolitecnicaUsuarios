@@ -14,6 +14,14 @@ describe('Careers - E2E', () => {
   let services: TestServices;
   let repositories: TestRepositories;
   let careerMother: CareerMother;
+  let authHeaders: Record<string, string>;
+
+  const login = async () => {
+    const res = await request(server)
+      .post('/auth/login')
+      .send({ username: 'admin', password: 'Admin123*' });
+    authHeaders = { Authorization: `Bearer ${res.body.accessToken}` };
+  };
 
   beforeAll(async () => {
     const testDB = await TestDatabaseManager.initializeE2E();
@@ -23,25 +31,28 @@ describe('Careers - E2E', () => {
     services = TestHelpers.getServices(module);
     repositories = TestHelpers.getRepositories(module);
     careerMother = new CareerMother(module.get<CareersService>(CareersService));
+    await TestHelpers.setupTestData(module.get<SeedService>(SeedService));
+    await login();
   });
 
   afterAll(async () => {
     await TestDatabaseManager.cleanUp();
   });
 
-  afterEach(async () => {
+  beforeEach(async () => {
     await TestHelpers.setupTestData(module.get<SeedService>(SeedService));
+    await login();
   });
 
   describe('POST /careers', () => {
     it('creates a career', async () => {
-      const res = await request(server).post('/careers').send(CareerMother.dto());
+      const res = await request(server).post('/careers').set(authHeaders).send(CareerMother.dto());
       expect(res.status).toBe(201);
       expect(res.body?.name).toBe(CareerMother.dto().name);
     });
     it('rejects duplicate name', async () => {
       await careerMother.createMany(1, { name: 'dup' } as any);
-      const res = await request(server).post('/careers').send(CareerMother.dto({ name: 'dup' }));
+      const res = await request(server).post('/careers').set(authHeaders).send(CareerMother.dto({ name: 'dup' }));
       expect(res.status).toBe(400);
     });
   });
@@ -76,7 +87,7 @@ describe('Careers - E2E', () => {
   describe('PATCH /careers/:id', () => {
     it('updates and sets updatedAt', async () => {
       const [created] = await careerMother.createMany(1, { name: 'history' } as any);
-      const res = await request(server).patch(`/careers/${created!.id}`).send({ name: 'Modern History' });
+      const res = await request(server).patch(`/careers/${created!.id}`).set(authHeaders).send({ name: 'Modern History' });
       expect(res.status).toBe(200);
       expect(res.body?.name).toBe('modern history');
       expect(res.body?.updatedAt).toBeDefined();
@@ -84,7 +95,7 @@ describe('Careers - E2E', () => {
     it('rejects duplicate name', async () => {
       const [a] = await careerMother.createMany(1, { name: 'a-career' } as any);
       const [b] = await careerMother.createMany(1, { name: 'b-career' } as any);
-      const res = await request(server).patch(`/careers/${a!.id}`).send({ name: b!.name });
+      const res = await request(server).patch(`/careers/${a!.id}`).set(authHeaders).send({ name: b!.name });
       expect(res.status).toBe(400);
     });
   });
@@ -92,7 +103,7 @@ describe('Careers - E2E', () => {
   describe('DELETE /careers/:id', () => {
     it('hard deletes the career', async () => {
       const [created] = await careerMother.createMany(1, { name: 'to-del' } as any);
-      const res = await request(server).delete(`/careers/${created!.id}`);
+      const res = await request(server).delete(`/careers/${created!.id}`).set(authHeaders);
       expect(res.status).toBe(200);
       expect(res.body?.id).toBe(created?.id);
 
