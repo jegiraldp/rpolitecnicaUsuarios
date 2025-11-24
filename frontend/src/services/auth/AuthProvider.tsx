@@ -50,19 +50,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const refreshed = await AuthAPI.refresh();
         persistSession(refreshed);
         setSession(refreshed);
-      } catch {
-        // Si falla, limpiar sesión
-        clearSession();
-        setSession(null);
-      }
+      } catch { /* ignore refresh errors to avoid dropping session */ }
     };
 
-    // Intentar rehidratar en arranque aunque session sea null (si existe cookie de refresh)
-    tryRefresh();
-
-    if (session) {
-      interval = window.setInterval(tryRefresh, 10 * 60 * 1000); // cada 10 minutos
+    if (!session) {
+      tryRefresh();
+      return () => {
+        if (interval) window.clearInterval(interval);
+      };
     }
+
+    interval = window.setInterval(tryRefresh, 10 * 60 * 1000);
 
     return () => {
       if (interval) window.clearInterval(interval);

@@ -55,11 +55,13 @@ export class AuthService {
 
   private setRefreshCookie(res: Response, token: string) {
     const maxAgeMs = 7 * 24 * 60 * 60 * 1000; // 7 days
-    const secure = process.env.NODE_ENV === 'production';
+    const isProd = process.env.NODE_ENV === 'production';
+    const secure = isProd;
+    const sameSite = isProd ? 'none' : 'lax';
     res.cookie('refresh_token', token, {
       httpOnly: true,
       secure,
-      sameSite: 'lax',
+      sameSite,
       path: '/',
       maxAge: maxAgeMs,
     });
