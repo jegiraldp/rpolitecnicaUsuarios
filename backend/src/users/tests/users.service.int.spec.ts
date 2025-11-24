@@ -103,8 +103,8 @@ describe('UsersService - INT', () => {
       expect(res?.isActive).toBe(false);
     });
     it('throws NotFound on missing id', async () => {
-      await expect(services.usersService.update('missing', { username: 'x' })).rejects.toThrowError(NotFoundException);
-      await expect(services.usersService.deactivate('missing')).rejects.toThrowError(NotFoundException);
+      await expect(services.usersService.update(999999, { username: 'x' })).rejects.toThrowError(NotFoundException);
+      await expect(services.usersService.deactivate(999999)).rejects.toThrowError(NotFoundException);
     });
   });
 });

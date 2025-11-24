@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, ParseIntPipe } from '@nestjs/common';
 import { InterestsService } from './interests.service';
 import { CreateInterestDto } from './dto/create-interest.dto';
 import { UpdateInterestDto } from './dto/update-interest.dto';
@@ -21,19 +21,19 @@ export class InterestsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseIntPipe) id: number) {
     return this.interestsService.findOne(id);
   }
 
   @Auth()
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateInterestDto) {
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateInterestDto) {
     return this.interestsService.update(id, dto);
   }
 
   @Auth()
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseIntPipe) id: number) {
     return this.interestsService.remove(id);
   }
 }

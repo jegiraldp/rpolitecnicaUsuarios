@@ -35,16 +35,18 @@ export class CollegesService {
       const take = Math.min(Math.max(1, limitRaw), 100);
       const skip = (page - 1) * take;
       const where: any = {};
-      if (filters?.id) where.id = String(filters.id);
+      if (filters?.id !== undefined) where.id = filters.id;
       if (filters?.name) where.name = filters.name.toLowerCase();
 
       let data: College[] = [];
       let total = 0;
 
+      const hasId = filters?.id !== undefined;
+
       if (filters?.name) {
         const qb = this.collegeRepository
           .createQueryBuilder('college')
-          .where(where.id ? 'college.id = :id' : '1=1', where.id ? { id: where.id } : {})
+          .where(hasId ? 'college.id = :id' : '1=1', hasId ? { id: where.id } : {})
           .andWhere('LOWER(college.name) LIKE :name', { name: `%${filters.name.toLowerCase()}%` })
           .skip(skip)
           .take(take);
@@ -73,10 +75,9 @@ export class CollegesService {
     }
   }
 
-  async findOne(id: string | number): Promise<College | null | undefined> {
+  async findOne(id: number): Promise<College | null | undefined> {
     try {
-      const idStr = String(id);
-      return await this.collegeRepository.findOne({ where: { id: idStr } });
+      return await this.collegeRepository.findOne({ where: { id } });
     } catch (error) {
       handleException(error, this.logger);
     }
@@ -84,7 +85,7 @@ export class CollegesService {
 
   // findAllBy merged into findAll
 
-  async update(id: string, updateCollegeDto: UpdateCollegeDto): Promise<College | undefined> {
+  async update(id: number, updateCollegeDto: UpdateCollegeDto): Promise<College | undefined> {
     try {
       const existing = await this.collegeRepository.findOne({ where: { id } });
       if (!existing) {
@@ -108,7 +109,7 @@ export class CollegesService {
     }
   }
 
-  async remove(id: string): Promise<College | undefined> {
+  async remove(id: number): Promise<College | undefined> {
     try {
       const existing = await this.collegeRepository.findOne({ where: { id } });
       if (!existing) {
@@ -121,7 +122,7 @@ export class CollegesService {
     }
   }
 
-  private async existsByName(name: string, excludeId?: string): Promise<boolean> {
+  private async existsByName(name: string, excludeId?: number): Promise<boolean> {
     const where: any = { name: name.toLowerCase() }
     if (excludeId) {
       where.id = Not(excludeId)

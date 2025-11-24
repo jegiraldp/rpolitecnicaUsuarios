@@ -1,10 +1,12 @@
-import { IsBoolean, IsEmail, IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsBoolean, IsEmail, IsInt, IsOptional, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 
 export class FindUsersDto extends PaginationDto {
   @IsOptional()
-  @IsUUID('4')
-  id?: string;
+  @Type(() => Number)
+  @IsInt()
+  id?: number;
 
   @IsOptional()
   @IsString()
@@ -23,14 +25,17 @@ export class FindUsersDto extends PaginationDto {
   isActive?: boolean;
 
   @IsOptional()
-  @IsUUID('4')
-  collegeId?: string;
+  @Type(() => Number)
+  @IsInt()
+  collegeId?: number;
 
   @IsOptional()
-  @IsUUID('4')
-  careerId?: string;
+  @Type(() => Number)
+  @IsInt()
+  careerId?: number;
 
   @IsOptional()
-  @IsUUID('4')
-  interestId?: string;
+  @Type(() => Number)
+  @IsInt()
+  interestId?: number;
 }

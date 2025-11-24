@@ -96,7 +96,7 @@ describe('CollegesService', () => {
      });
 
      it('should throw NotFound when college does not exist', async () => {
-       await expect(services.collegeServices.update('non-existing-id', { name: 'something' })).rejects.toThrowError(NotFoundException);
+       await expect(services.collegeServices.update(999999, { name: 'something' })).rejects.toThrowError(NotFoundException);
      });
    })
 
@@ -112,9 +112,9 @@ describe('CollegesService', () => {
      });
 
      it('should throw NotFound when trying to remove a non-existing college', async () => {
-       await expect(services.collegeServices.remove('non-existing-id'))
+       await expect(services.collegeServices.remove(999999))
         .rejects.toThrow();
-     });
-   })
+    });
+  })
 
 });

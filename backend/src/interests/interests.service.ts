@@ -35,16 +35,18 @@ export class InterestsService {
       const skip = (page - 1) * take;
 
       const where: any = {};
-      if (filters?.id) where.id = String(filters.id);
+      if (filters?.id !== undefined) where.id = filters.id;
       if (filters?.name) where.name = filters.name.toLowerCase();
 
       let data: Interest[] = [];
       let total = 0;
 
+      const hasId = filters?.id !== undefined;
+
       if (filters?.name) {
         const qb = this.interestRepository
           .createQueryBuilder('interest')
-          .where(where.id ? 'interest.id = :id' : '1=1', where.id ? { id: where.id } : {})
+          .where(hasId ? 'interest.id = :id' : '1=1', hasId ? { id: where.id } : {})
           .andWhere('LOWER(interest.name) LIKE :name', { name: `%${filters.name.toLowerCase()}%` })
           .skip(skip)
           .take(take);
@@ -74,16 +76,15 @@ export class InterestsService {
     }
   }
 
-  async findOne(id: string | number): Promise<Interest | null | undefined> {
+  async findOne(id: number): Promise<Interest | null | undefined> {
     try {
-      const idStr = String(id);
-      return await this.interestRepository.findOne({ where: { id: idStr } });
+      return await this.interestRepository.findOne({ where: { id } });
     } catch (error) {
       handleException(error, this.logger);
     }
   }
 
-  async update(id: string, updateDto: UpdateInterestDto): Promise<Interest | undefined> {
+  async update(id: number, updateDto: UpdateInterestDto): Promise<Interest | undefined> {
     try {
       const existing = await this.interestRepository.findOne({ where: { id } });
       if (!existing) throw new NotFoundException('Interés no encontrado');
@@ -100,7 +101,7 @@ export class InterestsService {
     }
   }
 
-  async remove(id: string): Promise<Interest | undefined> {
+  async remove(id: number): Promise<Interest | undefined> {
     try {
       const existing = await this.interestRepository.findOne({ where: { id } });
       if (!existing) throw new NotFoundException('Interés no encontrado');
@@ -111,7 +112,7 @@ export class InterestsService {
     }
   }
 
-  private async existsByName(name: string, excludeId?: string): Promise<boolean> {
+  private async existsByName(name: string, excludeId?: number): Promise<boolean> {
     const where: any = { name: name.toLowerCase() };
     if (excludeId) where.id = Not(excludeId);
     const count = await this.interestRepository.count({ where });

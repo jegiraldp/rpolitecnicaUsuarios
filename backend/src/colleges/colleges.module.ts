@@ -9,5 +9,6 @@ import { AuthModule } from 'src/auth/auth.module';
   imports: [TypeOrmModule.forFeature([College]), AuthModule],
   controllers: [CollegesController],
   providers: [CollegesService],
+  exports: [TypeOrmModule]
 })
-export class CollegesModule {}
+export class CollegesModule { }

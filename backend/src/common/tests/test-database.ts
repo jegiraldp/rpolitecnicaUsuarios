@@ -15,6 +15,9 @@ import { UsersModule } from "../../users/users.module";
 import { JwtStrategy } from "src/auth/strategies/jwtStrategy";
 import { Auth } from "src/auth/entities/auth.entity";
 import { AuthModule } from "src/auth/auth.module";
+import { Publication } from "src/users/entities/publication.entity";
+import { PublicationReviews } from "src/users/entities/publication_reviews.entity";
+import { DashboardModule } from "src/dashboard/dashboard.module";
 export class TestDatabaseManager {
     private static module: TestingModule;
     private static app: INestApplication;
@@ -28,17 +31,18 @@ export class TestDatabaseManager {
                     TypeOrmModule.forRoot({
                         type: "sqlite",
                         database: ":memory:",
-                        entities: [College, Interest, Career, User, Auth],
+                        entities: [College, Interest, Career, User, Auth, Publication, PublicationReviews],
                         synchronize: true,
                         dropSchema: true,
                         extra: { pragma: "FOREIGN_KEYS=ON;" }
                     }),
-                    TypeOrmModule.forFeature([College, Interest, Career, User, Auth]),
+                    TypeOrmModule.forFeature([College, Interest, Career, User, Auth, Publication, PublicationReviews]),
                     CollegesModule,
                     InterestsModule,
                     CareersModule,
                     UsersModule,
                     AuthModule,
+                    DashboardModule
                 ],
                 providers: [SeedService]
             }).compile()
@@ -74,14 +78,14 @@ export class TestDatabaseManager {
                 TypeOrmModule.forRoot({
                     type: "sqlite",
                     database: ":memory:",
-                    entities: [College, Interest, Career, User, Auth],
+                    entities: [College, Interest, Career, User, Auth, Publication, PublicationReviews],
                     synchronize: true,
                     dropSchema: true,
                     extra: {
                         pragma: "FOREIGN_KEYS=ON;"
                     }
                 }),
-                TypeOrmModule.forFeature([College, Interest, Career, User, Auth]),
+                TypeOrmModule.forFeature([College, Interest, Career, User, Auth, Publication, PublicationReviews]),
                 CollegesModule,
                 InterestsModule,
                 CareersModule,
@@ -90,8 +94,8 @@ export class TestDatabaseManager {
             ],
             providers: [SeedService]
         })
-            .overrideProvider(JwtStrategy) 
-            .useValue({})                  
+            .overrideProvider(JwtStrategy)
+            .useValue({})
             .compile();
 
         const seedService = this.module.get<SeedService>(SeedService);

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseIntPipe } from '@nestjs/common';
 import { CollegesService } from './colleges.service';
 import { CreateCollegeDto } from './dto/create-college.dto';
 import { UpdateCollegeDto } from './dto/update-college.dto';
@@ -21,19 +21,19 @@ export class CollegesController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseIntPipe) id: number) {
     return this.collegesService.findOne(id);
   }
 
   @Auth()
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCollegeDto: UpdateCollegeDto) {
+  update(@Param('id', ParseIntPipe) id: number, @Body() updateCollegeDto: UpdateCollegeDto) {
     return this.collegesService.update(id, updateCollegeDto);
   }
 
   @Auth()
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseIntPipe) id: number) {
     return this.collegesService.remove(id);
   }
 }

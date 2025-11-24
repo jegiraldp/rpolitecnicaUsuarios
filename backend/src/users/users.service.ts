@@ -25,13 +25,13 @@ export class UsersService {
     private readonly interestRepo: Repository<Interest>,
   ) {}
 
-  private async usernameExists(username: string, excludeId?: string) {
+  private async usernameExists(username: string, excludeId?: number) {
     const where: any = { username: username.toLowerCase() };
     if (excludeId) where.id = Not(excludeId);
     const count = await this.userRepo.count({ where });
     return count > 0;
   }
-  private async emailExists(email: string, excludeId?: string) {
+  private async emailExists(email: string, excludeId?: number) {
     const where: any = { email: email.toLowerCase() };
     if (excludeId) where.id = Not(excludeId);
     const count = await this.userRepo.count({ where });
@@ -74,14 +74,14 @@ export class UsersService {
         .leftJoinAndSelect('user.career', 'career')
         .leftJoinAndSelect('user.interests', 'interest');
 
-      if (filters?.id) qb.andWhere('user.id = :id', { id: filters.id });
+      if (filters?.id !== undefined) qb.andWhere('user.id = :id', { id: filters.id });
       if (filters?.username) qb.andWhere('LOWER(user.username) LIKE :username', { username: `%${filters.username.toLowerCase()}%` });
       if (filters?.email) qb.andWhere('LOWER(user.email) LIKE :email', { email: `%${filters.email.toLowerCase()}%` });
       if (filters?.country) qb.andWhere('LOWER(user.country) LIKE :country', { country: `%${filters.country.toLowerCase()}%` });
       if (typeof filters?.isActive === 'boolean') qb.andWhere('user.is_active = :isActive', { isActive: filters.isActive });
-      if (filters?.collegeId) qb.andWhere('college.id = :collegeId', { collegeId: filters.collegeId });
-      if (filters?.careerId) qb.andWhere('career.id = :careerId', { careerId: filters.careerId });
-      if (filters?.interestId) qb.andWhere('interest.id = :interestId', { interestId: filters.interestId });
+      if (filters?.collegeId !== undefined) qb.andWhere('college.id = :collegeId', { collegeId: filters.collegeId });
+      if (filters?.careerId !== undefined) qb.andWhere('career.id = :careerId', { careerId: filters.careerId });
+      if (filters?.interestId !== undefined) qb.andWhere('interest.id = :interestId', { interestId: filters.interestId });
 
       const [items, total] = await qb.skip(skip).take(take).getManyAndCount();
 
@@ -104,16 +104,15 @@ export class UsersService {
     }
   }
 
-  async findOne(id: string | number): Promise<User | null | undefined> {
+  async findOne(id: number): Promise<User | null | undefined> {
     try {
-      const idStr = String(id);
-      return await this.userRepo.findOne({ where: { id: idStr }, relations: ['college', 'career', 'interests'] });
+      return await this.userRepo.findOne({ where: { id }, relations: ['college', 'career', 'interests'] });
     } catch (error) {
       handleException(error, this.logger);
     }
   }
 
-  async update(id: string, dto: UpdateUserDto): Promise<User | undefined> {
+  async update(id: number, dto: UpdateUserDto): Promise<User | undefined> {
     try {
       const existing = await this.userRepo.findOne({ where: { id }, relations: ['interests', 'college', 'career'] });
       if (!existing) throw new NotFoundException('Usuario no encontrado');
@@ -138,7 +137,7 @@ export class UsersService {
     }
   }
 
-  async deactivate(id: string): Promise<User | undefined> {
+  async deactivate(id: number): Promise<User | undefined> {
     try {
       const existing = await this.userRepo.findOne({ where: { id } });
       if (!existing) throw new NotFoundException('Usuario no encontrado');

@@ -3,8 +3,8 @@ import { Column, Entity, Index, JoinColumn, OneToOne, PrimaryGeneratedColumn } f
 
 @Entity("auth")
 export class Auth {
-    @PrimaryGeneratedColumn("uuid")
-    id: string;
+    @PrimaryGeneratedColumn()
+    id: number;
 
     @OneToOne(() => User, { nullable: true })
     @JoinColumn({ name: "user_id" })

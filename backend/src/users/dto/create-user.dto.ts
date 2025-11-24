@@ -1,4 +1,5 @@
-import { IsArray, IsBoolean, IsEmail, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import { IsArray, IsBoolean, IsEmail, IsInt, IsOptional, IsString, MaxLength } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateUserDto {
   @IsString()
@@ -19,15 +20,18 @@ export class CreateUserDto {
   isActive?: boolean;
 
   @IsOptional()
-  @IsUUID('4')
-  collegeId?: string;
+  @Type(() => Number)
+  @IsInt()
+  collegeId?: number;
 
   @IsOptional()
-  @IsUUID('4')
-  careerId?: string;
+  @Type(() => Number)
+  @IsInt()
+  careerId?: number;
 
   @IsOptional()
   @IsArray()
-  @IsUUID('4', { each: true })
-  interestIds?: string[];
+  @Type(() => Number)
+  @IsInt({ each: true })
+  interestIds?: number[];
 }

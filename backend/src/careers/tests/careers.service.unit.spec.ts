@@ -40,20 +40,20 @@ describe('CareersService - Unit', () => {
 
   describe('find', () => {
     it('findAll paginated', async () => {
-      const items = [ { id: 'c1', name: 'a' }, { id: 'c2', name: 'b' } ];
+      const items = [ { id: 1, name: 'a' }, { id: 2, name: 'b' } ];
       mockCareerRepo.findAndCount.mockResolvedValue([items, items.length]);
       const res = await service.findAll({ page: 1, limit: 10 } as any);
       expect(res?.data).toHaveLength(2);
       expect(res?.meta.total).toBe(2);
     });
     it('findOne by id', async () => {
-      const item = { id: 'cid', name: 'x' } as any;
+      const item = { id: 1, name: 'x' } as any;
       mockCareerRepo.findOne.mockResolvedValue(item);
-      const res = await service.findOne('cid');
-      expect(res?.id).toBe('cid');
+      const res = await service.findOne(1);
+      expect(res?.id).toBe(1);
     });
     it('filter by name contains', async () => {
-      const items = [ { id: 'c1', name: 'career name' } ];
+      const items = [ { id: 1, name: 'career name' } ];
       const qb = {
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
@@ -69,30 +69,30 @@ describe('CareersService - Unit', () => {
 
   describe('update/remove', () => {
     it('updates with updatedAt', async () => {
-      mockCareerRepo.findOne.mockResolvedValue({ id: 'cid', name: 'old' });
+      mockCareerRepo.findOne.mockResolvedValue({ id: 1, name: 'old' });
       mockCareerRepo.count.mockResolvedValue(0);
       mockCareerRepo.merge.mockImplementation((e, dto) => ({ ...e, ...dto }));
       mockCareerRepo.save.mockImplementation(async (arg) => arg);
-      const res = await service.update('cid', { name: 'New' });
+      const res = await service.update(1, { name: 'New' });
       expect(res?.name).toBe('New');
       expect(res?.updatedAt).toBeDefined();
     });
     it('throws NotFound on update missing', async () => {
       mockCareerRepo.findOne.mockResolvedValue(null);
-      await expect(service.update('missing', { name: 'x' })).rejects.toThrowError(NotFoundException);
+      await expect(service.update(999, { name: 'x' })).rejects.toThrowError(NotFoundException);
     });
     it('throws BadRequest on duplicate name', async () => {
-      mockCareerRepo.findOne.mockResolvedValue({ id: 'cid', name: 'old' });
+      mockCareerRepo.findOne.mockResolvedValue({ id: 1, name: 'old' });
       mockCareerRepo.count.mockResolvedValue(1);
-      await expect(service.update('cid', { name: 'dup' })).rejects.toThrowError(BadRequestException);
+      await expect(service.update(1, { name: 'dup' })).rejects.toThrowError(BadRequestException);
     });
     it('hard deletes the record', async () => {
-      const existing = { id: 'cid', name: 'old' };
+      const existing = { id: 1, name: 'old' };
       mockCareerRepo.findOne.mockResolvedValue(existing);
       mockCareerRepo.delete.mockResolvedValue({ affected: 1 });
-      const res = await service.remove('cid');
-      expect(mockCareerRepo.delete).toHaveBeenCalledWith('cid');
-      expect(res?.id).toBe('cid');
+      const res = await service.remove(1);
+      expect(mockCareerRepo.delete).toHaveBeenCalledWith(1);
+      expect(res?.id).toBe(1);
     });
   });
 });

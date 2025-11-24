@@ -2,8 +2,8 @@ import { BeforeInsert, BeforeUpdate, Column, Entity, Index, PrimaryGeneratedColu
 
 @Entity("career")
 export class Career {
-  @PrimaryGeneratedColumn("uuid")
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
   @Column({ length: 255 })
   @Index({ unique: true })

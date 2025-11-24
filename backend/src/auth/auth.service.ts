@@ -36,8 +36,8 @@ export class AuthService {
     return (expiresIn ?? '7d') as StringValue | number;
   }
 
-  private async signAccessToken(id: string) {
-    const payload: JwtPayload = { id: id.toString() };
+  private async signAccessToken(id: number) {
+    const payload: JwtPayload = { id };
     return this.jwtService.signAsync(payload, { expiresIn: this.accessExpiresIn() });
   }
 
@@ -48,8 +48,8 @@ export class AuthService {
     },
   });
 
-  private async signRefreshToken(id: string) {
-    return this.refreshJwt.signAsync({ id: id.toString() });
+  private async signRefreshToken(id: number) {
+    return this.refreshJwt.signAsync({ id });
   }
 
 

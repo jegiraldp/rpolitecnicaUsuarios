@@ -71,8 +71,8 @@ describe('CareersService - INT', () => {
       expect(inDb).toBeNull();
     });
     it('throws NotFound on missing id', async () => {
-      await expect(services.careersService.update('missing', { name: 'x' })).rejects.toThrowError(NotFoundException);
-      await expect(services.careersService.remove('missing')).rejects.toThrowError(NotFoundException);
+      await expect(services.careersService.update(999999, { name: 'x' })).rejects.toThrowError(NotFoundException);
+      await expect(services.careersService.remove(999999)).rejects.toThrowError(NotFoundException);
     });
   });
 });

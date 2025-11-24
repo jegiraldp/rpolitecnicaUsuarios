@@ -1,13 +1,14 @@
-import { IsOptional, IsString } from 'class-validator';
+import { IsInt, IsOptional, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 
 export class FindInterestsDto extends PaginationDto {
   @IsOptional()
-  @IsString()
-  id?: string;
+  @Type(() => Number)
+  @IsInt()
+  id?: number;
 
   @IsOptional()
   @IsString()
   name?: string;
 }
-

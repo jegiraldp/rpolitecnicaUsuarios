@@ -1,6 +1,5 @@
-import { v4 as uuid } from "uuid"
 export interface College {
-    id: string;
+    id: number;
     name: string;
 }
 
@@ -11,15 +10,15 @@ interface InitialData {
 export const initialData: InitialData = {
     college: [
         {
-            id: uuid(),
+            id: 1,
             name: 'Engineering College',
         },
         {
-            id: uuid(),
+            id: 2,
             name: 'Arts College',
         },
         {
-            id: uuid(),
+            id: 3,
             name: 'Commerce College',
         },
     ],

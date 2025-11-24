@@ -55,8 +55,8 @@ describe('CollegesService', () => {
   describe('Find colleges', () => {
     it('should return all colleges', async () => {
       const items = [
-        { id: 'id-1', name: 'eng college' },
-        { id: 'id-2', name: 'arts college' },
+        { id: 1, name: 'eng college' },
+        { id: 2, name: 'arts college' },
       ];
       mockCollegeRepo.findAndCount.mockResolvedValue([items, items.length]);
 
@@ -69,19 +69,19 @@ describe('CollegesService', () => {
     })
 
     it('should return a college by id', async () => {
-      const item = { id: 'uuid-123', name: 'eng college' } as unknown as College;
+      const item = { id: 123, name: 'eng college' } as unknown as College;
       mockCollegeRepo.findOne.mockResolvedValue(item);
 
-      const response = await collegeService.findOne('uuid-123');
+      const response = await collegeService.findOne(123);
 
       expect(response).toBeDefined();
-      expect(response?.id).toBe('uuid-123');
+      expect(response?.id).toBe(123);
       expect(response?.name).toBe('eng college');
     })
 
     it('should filter colleges by name (contains)', async () => {
       const items = [
-        { id: 'id-1', name: 'engineering college' },
+        { id: 1, name: 'engineering college' },
       ];
 
       const qb = {
@@ -100,59 +100,59 @@ describe('CollegesService', () => {
 
     it('should filter colleges by id (exact)', async () => {
       const items = [
-        { id: 'uuid-1', name: 'arts college' },
+        { id: 1, name: 'arts college' },
       ];
       mockCollegeRepo.findAndCount.mockResolvedValue([items, items.length]);
 
-      const response = await collegeService.findAll({ page: 1, limit: 10, id: 'uuid-1' } as any);
+      const response = await collegeService.findAll({ page: 1, limit: 10, id: 1 } as any);
       expect(response?.data).toHaveLength(1);
-      expect(response?.data[0].id).toBe('uuid-1');
+      expect(response?.data[0].id).toBe(1);
     });
   })
 
   describe('Update College', () => {
     it('should update a college', async () => {
-      const existing: Partial<College> = { id: 'uuid-1', name: 'old name' };
+      const existing: Partial<College> = { id: 1, name: 'old name' };
       mockCollegeRepo.findOne.mockResolvedValue(existing);
       mockCollegeRepo.count.mockResolvedValue(0);
       mockCollegeRepo.merge.mockImplementation((e, dto) => ({ ...e, ...dto }));
       mockCollegeRepo.save.mockImplementation(async (arg) => arg);
 
-      const response = await collegeService.update('uuid-1', { name: 'new name' });
+      const response = await collegeService.update(1, { name: 'new name' });
       expect(response).toBeDefined();
-      expect(response?.id).toBe('uuid-1');
+      expect(response?.id).toBe(1);
       expect(response?.name).toBe('new name');
       expect(response?.updatedAt).toBeDefined();
     });
 
     it('should throw NotFound when college does not exist', async () => {
       mockCollegeRepo.findOne.mockResolvedValue(null);
-      await expect(collegeService.update('missing-id', { name: 'x' })).rejects.toThrowError(NotFoundException);
+      await expect(collegeService.update(999, { name: 'x' })).rejects.toThrowError(NotFoundException);
     });
 
     it('should throw BadRequest when updating to duplicate name', async () => {
-      const existing: Partial<College> = { id: 'uuid-1', name: 'old name' };
+      const existing: Partial<College> = { id: 1, name: 'old name' };
       mockCollegeRepo.findOne.mockResolvedValue(existing);
       mockCollegeRepo.count.mockResolvedValue(1);
-      await expect(collegeService.update('uuid-1', { name: 'duplicated' })).rejects.toThrowError(BadRequestException);
+      await expect(collegeService.update(1, { name: 'duplicated' })).rejects.toThrowError(BadRequestException);
     });
   })
 
   describe('Remove College', () => {
     it('should hard delete a college', async () => {
-      const existing: Partial<College> = { id: 'uuid-1', name: 'name', isActive: true } as any;
+      const existing: Partial<College> = { id: 1, name: 'name', isActive: true } as any;
       mockCollegeRepo.findOne.mockResolvedValue(existing);
       mockCollegeRepo.delete.mockResolvedValue({ affected: 1 });
 
-      const response = await collegeService.remove('uuid-1');
+      const response = await collegeService.remove(1);
       expect(response).toBeDefined();
-      expect(mockCollegeRepo.delete).toHaveBeenCalledWith('uuid-1');
-      expect(response?.id).toBe('uuid-1');
+      expect(mockCollegeRepo.delete).toHaveBeenCalledWith(1);
+      expect(response?.id).toBe(1);
     });
 
     it('should throw NotFound if college does not exist', async () => {
       mockCollegeRepo.findOne.mockResolvedValue(null);
-      await expect(collegeService.remove('missing')).rejects.toThrow();
+      await expect(collegeService.remove(999)).rejects.toThrow();
     });
   })
 })

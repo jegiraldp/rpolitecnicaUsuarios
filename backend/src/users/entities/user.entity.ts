@@ -1,12 +1,14 @@
-import { BeforeInsert, BeforeUpdate, Column, Entity, Index, JoinTable, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { BeforeInsert, BeforeUpdate, Column, Entity, Index, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { College } from "../../colleges/entities/college.entity";
 import { Career } from "../../careers/entities/career.entity";
 import { Interest } from "../../interests/entities/interest.entity";
+import { Publication } from "./publication.entity";
+import { PublicationReviews } from "./publication_reviews.entity";
 
 @Entity("user")
 export class User {
-  @PrimaryGeneratedColumn("uuid")
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
   @Column({ length: 100 })
   @Index({ unique: true })
@@ -37,6 +39,18 @@ export class User {
   @ManyToMany(() => Interest, { nullable: true })
   @JoinTable({ name: 'user_interests' })
   interests?: Interest[];
+
+  @OneToMany(
+    () => Publication,
+    publication => publication.author
+  )
+  publication: Publication[];
+
+  @OneToMany(() => PublicationReviews,
+    publicationReviews => publicationReviews.reviewer,
+    { eager: true })
+  publicationReview: PublicationReviews[];
+
 
   @BeforeInsert()
   @BeforeUpdate()

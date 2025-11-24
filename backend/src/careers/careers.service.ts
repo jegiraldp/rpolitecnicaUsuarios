@@ -35,16 +35,18 @@ export class CareersService {
       const skip = (page - 1) * take;
 
       const where: any = {};
-      if (filters?.id) where.id = String(filters.id);
+      if (filters?.id !== undefined) where.id = filters.id;
       if (filters?.name) where.name = filters.name.toLowerCase();
 
       let data: Career[] = [];
       let total = 0;
 
+      const hasId = filters?.id !== undefined;
+
       if (filters?.name) {
         const qb = this.careerRepository
           .createQueryBuilder('career')
-          .where(where.id ? 'career.id = :id' : '1=1', where.id ? { id: where.id } : {})
+          .where(hasId ? 'career.id = :id' : '1=1', hasId ? { id: where.id } : {})
           .andWhere('LOWER(career.name) LIKE :name', { name: `%${filters.name.toLowerCase()}%` })
           .skip(skip)
           .take(take);
@@ -74,16 +76,15 @@ export class CareersService {
     }
   }
 
-  async findOne(id: string | number): Promise<Career | null | undefined> {
+  async findOne(id: number): Promise<Career | null | undefined> {
     try {
-      const idStr = String(id);
-      return await this.careerRepository.findOne({ where: { id: idStr } });
+      return await this.careerRepository.findOne({ where: { id } });
     } catch (error) {
       handleException(error, this.logger);
     }
   }
 
-  async update(id: string, updateDto: UpdateCareerDto): Promise<Career | undefined> {
+  async update(id: number, updateDto: UpdateCareerDto): Promise<Career | undefined> {
     try {
       const existing = await this.careerRepository.findOne({ where: { id } });
       if (!existing) throw new NotFoundException('Carrera no encontrada');
@@ -100,7 +101,7 @@ export class CareersService {
     }
   }
 
-  async remove(id: string): Promise<Career | undefined> {
+  async remove(id: number): Promise<Career | undefined> {
     try {
       const existing = await this.careerRepository.findOne({ where: { id } });
       if (!existing) throw new NotFoundException('Carrera no encontrada');
@@ -111,7 +112,7 @@ export class CareersService {
     }
   }
 
-  private async existsByName(name: string, excludeId?: string): Promise<boolean> {
+  private async existsByName(name: string, excludeId?: number): Promise<boolean> {
     const where: any = { name: name.toLowerCase() };
     if (excludeId) where.id = Not(excludeId);
     const count = await this.careerRepository.count({ where });

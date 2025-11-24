@@ -47,7 +47,7 @@ describe('UsersService - Unit', () => {
 
   describe('find', () => {
     it('findAll with filters', async () => {
-      const items = [ { id: 'u1', username: 'john', email: 'john@example.com' } ];
+      const items = [ { id: 1, username: 'john', email: 'john@example.com' } ];
       const qb = mockUserRepo.createQueryBuilder();
       qb.getManyAndCount.mockResolvedValue([items, items.length]);
       const res = await service.findAll({ page: 1, limit: 10, username: 'jo' } as any);
@@ -55,31 +55,31 @@ describe('UsersService - Unit', () => {
       expect(res?.meta.total).toBe(1);
     });
     it('findOne by id', async () => {
-      const item = { id: 'uid', username: 'john' } as any;
+      const item = { id: 1, username: 'john' } as any;
       mockUserRepo.findOne.mockResolvedValue(item);
-      const res = await service.findOne('uid');
-      expect(res?.id).toBe('uid');
+      const res = await service.findOne(1);
+      expect(res?.id).toBe(1);
     });
   });
 
   describe('update/deactivate', () => {
     it('updates and sets updatedAt', async () => {
-      mockUserRepo.findOne.mockResolvedValueOnce({ id: 'uid', username: 'old', email: 'x@x.com', isActive: true });
+      mockUserRepo.findOne.mockResolvedValueOnce({ id: 1, username: 'old', email: 'x@x.com', isActive: true });
       mockUserRepo.count.mockResolvedValue(0);
       mockUserRepo.merge.mockImplementation((e: any, dto: any) => ({ ...e, ...dto }));
       mockUserRepo.save.mockImplementation(async (arg: any) => arg);
-      const res = await service.update('uid', { username: 'new' });
+      const res = await service.update(1, { username: 'new' });
       expect(res?.username).toBe('new');
       expect(res?.updatedAt).toBeDefined();
     });
     it('throws NotFound on update missing', async () => {
       mockUserRepo.findOne.mockResolvedValueOnce(null);
-      await expect(service.update('missing', { username: 'x' })).rejects.toThrowError(NotFoundException);
+      await expect(service.update(999, { username: 'x' })).rejects.toThrowError(NotFoundException);
     });
     it('deactivates user', async () => {
-      mockUserRepo.findOne.mockResolvedValueOnce({ id: 'uid', isActive: true });
+      mockUserRepo.findOne.mockResolvedValueOnce({ id: 1, isActive: true });
       mockUserRepo.save.mockImplementation(async (arg: any) => arg);
-      const res = await service.deactivate('uid');
+      const res = await service.deactivate(1);
       expect(res?.isActive).toBe(false);
     });
   });
