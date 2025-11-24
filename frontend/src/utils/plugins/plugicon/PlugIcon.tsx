@@ -1,10 +1,10 @@
 import { useMemo } from "react";
 import type { CSSProperties, HTMLAttributes } from "react";
-import { getIconMarkup, type IconName } from "@/assets/icons";
+import { getIconMarkup } from "@/assets/icons";
 import "./plugicon.css";
 
 export interface PlugIconProps extends Omit<HTMLAttributes<HTMLElement>, "color"> {
-  name?: IconName;
+  name?: string;
   color?: string;
   size?: string | number;
   original?: boolean;
@@ -55,7 +55,7 @@ export const PlugIcon = ({
 }: PlugIconProps) => {
   const markup = useMemo(() => {
     if (!name) return "";
-    const iconMarkup = getIconMarkup(name);
+    const iconMarkup = getIconMarkup(name as any);
     if (!iconMarkup) return "";
     return applyColorOverrides(iconMarkup, color);
   }, [name, color]);

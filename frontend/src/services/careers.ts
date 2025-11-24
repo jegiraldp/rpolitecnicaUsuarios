@@ -15,7 +15,7 @@ export const CareersService = {
     }
     return CareersAPI.list(filters);
   },
-  async get(id: string): Promise<Career> {
+  async get(id: number): Promise<Career> {
     if (USE_MOCK) {
       const data = await import("./mock/careers.json");
       const list = data.default as Career[];
@@ -27,17 +27,17 @@ export const CareersService = {
   },
   async create(dto: Pick<Career, "name">): Promise<Career> {
     if (USE_MOCK) {
-      return { id: crypto.randomUUID(), name: dto.name } as Career;
+      return { id: Date.now(), name: dto.name } as Career;
     }
     return CareersAPI.create(dto);
   },
-  async update(id: string, dto: Partial<Pick<Career, "name">>): Promise<Career> {
+  async update(id: number, dto: Partial<Pick<Career, "name">>): Promise<Career> {
     if (USE_MOCK) {
       return { id, name: dto.name || "" } as Career;
     }
     return CareersAPI.update(id, dto);
   },
-  async remove(id: string): Promise<Career> {
+  async remove(id: number): Promise<Career> {
     if (USE_MOCK) {
       return { id, name: "" } as Career;
     }

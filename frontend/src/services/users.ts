@@ -15,7 +15,7 @@ export const UsersService = {
     }
     return UsersAPI.list(filters) as unknown as PaginatedResponse<User>;
   },
-  async get(id: string): Promise<User> {
+  async get(id: number): Promise<User> {
     if (USE_MOCK) {
       const data = await import("./mock/users.json");
       const list = data.default as User[];

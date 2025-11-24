@@ -1,5 +1,4 @@
 export interface College {
-  id: string;
+  id: number;
   name: string;
 }
-

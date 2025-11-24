@@ -5,19 +5,19 @@ import type { IconName } from "@/assets/icons";
 import { useAuth } from "@/services/auth/AuthProvider";
 
 const titles: Record<string, string> = {
+  dashboard: "Dashboard",
   users: "Gestión de usuarios",
   interests: "Gestión de intereses",
   colleges: "Gestión de universidades",
   careers: "Gestión de carreras",
-  audits: "Auditorias",
 };
 
 const navItems: { to: string; label: string; icon: IconName }[] = [
+  { to: "/dashboard", label: "Dashboard", icon: "navStats" },
   { to: "/users", label: "Usuarios", icon: "navUsers" },
   { to: "/colleges", label: "Universidades", icon: "navColleges" },
   { to: "/interests", label: "Intereses", icon: "navInterests" },
   { to: "/careers", label: "Carreras", icon: "navCareers" },
-  { to: "/audits", label: "Auditorías", icon: "navStats" },
 ] as const;
 
 export default function Navbar() {

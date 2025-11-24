@@ -1,5 +1,4 @@
 export interface Career {
-  id: string;
+  id: number;
   name: string;
 }
-

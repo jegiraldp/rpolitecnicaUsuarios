@@ -1,4 +1,4 @@
 export interface Interest {
-  id: string; // backend UUID
+  id: number;
   name: string;
 }

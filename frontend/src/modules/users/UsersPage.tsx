@@ -35,9 +35,9 @@ type UserForm = {
   username: string;
   email: string;
   country: string;
-  collegeId: string;
-  careerId: string;
-  interestIds: string[];
+  collegeId: number | "";
+  careerId: number | "";
+  interestIds: number[];
   isActive: boolean;
 };
 
@@ -66,7 +66,7 @@ export default function UsersPage() {
   });
   const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0 });
   const [isOpen, setIsOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState<UserForm>(() => createEmptyForm());
   const [viewUser, setViewUser] = useState<User | null>(null);
   const [colleges, setColleges] = useState<College[]>([]);
@@ -80,6 +80,12 @@ export default function UsersPage() {
     const page = options?.page ?? pagination.page;
     const limit = options?.limit ?? pagination.limit;
     const activeFilters = options?.filtersOverride ?? filters;
+    const toNumberOrUndefined = (value: string | string[]) => {
+      const raw = (value as string) || "";
+      if (!raw) return undefined;
+      const parsed = Number(raw);
+      return Number.isNaN(parsed) ? undefined : parsed;
+    };
     try {
       setLoading(true);
       setError(null);
@@ -89,9 +95,9 @@ export default function UsersPage() {
         username: (activeFilters.username as string) || undefined,
         email: (activeFilters.email as string) || undefined,
         country: (activeFilters.countries as string) || undefined,
-        collegeId: (activeFilters.colleges as string) || undefined,
-        careerId: (activeFilters.careers as string) || undefined,
-        interestId: (activeFilters.interests as string) || undefined,
+        collegeId: toNumberOrUndefined(activeFilters.colleges),
+        careerId: toNumberOrUndefined(activeFilters.careers),
+        interestId: toNumberOrUndefined(activeFilters.interests),
       });
       setUsers(response.data);
       setPagination({
@@ -162,9 +168,9 @@ export default function UsersPage() {
         username: form.username.trim(),
         email: form.email.trim(),
         country: form.country.trim() || undefined,
-        collegeId: form.collegeId || undefined,
-        careerId: form.careerId || undefined,
-        interestIds: form.interestIds,
+        collegeId: form.collegeId === "" ? undefined : form.collegeId,
+        careerId: form.careerId === "" ? undefined : form.careerId,
+        interestIds: form.interestIds ?? [],
       };
       if (editingId) {
         await UsersAPI.update(editingId, {
@@ -337,9 +343,9 @@ export default function UsersPage() {
           { name: 'username', label: 'Usuario', placeholder: 'Buscar por usuario' },
           { name: 'email', label: 'Email', placeholder: 'Buscar por email', type: 'email' },
           { name: 'countries', label: 'País', type: 'select', options: countryOptions },
-          { name: 'careers', label: 'Carrera', type: 'select', options: [{ label: 'Todas', value: '' }, ...careers.map(c => ({ label: c.name, value: c.id }))] },
-          { name: 'colleges', label: 'Universidad', type: 'select', options: [{ label: 'Todas', value: '' }, ...colleges.map(c => ({ label: c.name, value: c.id }))] },
-          { name: 'interests', label: 'Interés', type: 'select', options: [{ label: 'Todos', value: '' }, ...interests.map(i => ({ label: i.name, value: i.id }))] },
+          { name: 'careers', label: 'Carrera', type: 'select', options: [{ label: 'Todas', value: '' }, ...careers.map(c => ({ label: c.name, value: String(c.id) }))] },
+          { name: 'colleges', label: 'Universidad', type: 'select', options: [{ label: 'Todas', value: '' }, ...colleges.map(c => ({ label: c.name, value: String(c.id) }))] },
+          { name: 'interests', label: 'Interés', type: 'select', options: [{ label: 'Todos', value: '' }, ...interests.map(i => ({ label: i.name, value: String(i.id) }))] },
         ] as FilterField[]}
         values={filters}
         onChange={(n, v) => setFilters((f) => ({ ...f, [n]: v }))}
@@ -402,7 +408,10 @@ export default function UsersPage() {
             <FormField label="Carrera">
               <select
                 value={form.careerId}
-                onChange={(e) => setForm((f) => ({ ...f, careerId: e.target.value }))}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setForm((f) => ({ ...f, careerId: value === "" ? "" : Number(value) }));
+                }}
                 className="w-full border rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="" disabled>Selecciona una carrera</option>
@@ -414,14 +423,26 @@ export default function UsersPage() {
             <FormField label="Universidad">
               <select
                 value={form.collegeId}
-                onChange={(e) => setForm((f) => ({ ...f, collegeId: e.target.value }))}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setForm((f) => ({
+                    ...f,
+                    collegeId: value === "" ? "" : Number(value),
+                  }));
+                }}  
                 className="w-full border rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="" disabled>Selecciona una universidad</option>
+                <option value="" disabled>
+                  Selecciona una universidad
+                </option>
+
                 {colleges.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
                 ))}
               </select>
+
             </FormField>
             {editingId && (
               <FormField label="Estado del usuario">
@@ -538,7 +559,7 @@ const InfoLine = ({ label, value }: { label: string; value: string }) => (
   </div>
 );
 
-const InterestsCell = ({ interests }: { interests: { id: string; name: string }[] }) => {
+const InterestsCell = ({ interests }: { interests: { id: number; name: string }[] }) => {
   if (!interests.length) return <span className="text-gray-500 text-sm">—</span>;
   const [first, ...rest] = interests;
   const extra = rest.length;

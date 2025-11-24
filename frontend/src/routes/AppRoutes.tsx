@@ -7,7 +7,7 @@ const InterestsPage = lazy(() => import("../modules/interests/InterestsPage"));
 const UsersPage = lazy(() => import("../modules/users/UsersPage"));
 const CollegesPage = lazy(() => import("../modules/colleges/CollegesPage"));
 const CareersPage = lazy(() => import("../modules/careers/CareersPage"));
-const AuditsPage = lazy(() => import("../modules/audits/AuditsPage"));
+const DashboardPage = lazy(() => import("../modules/dashboard/DashboardPage"));
 
 const AppRoutes = () => {
   return (
@@ -16,15 +16,15 @@ const AppRoutes = () => {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/" element={<MainLayout />}>
-            <Route index element={<Navigate to="users" replace />} />
+            <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="users" element={<UsersPage />} />
             <Route path="colleges" element={<CollegesPage />} />
             <Route path="interests" element={<InterestsPage />} />
             <Route path="careers" element={<CareersPage />} />
-            <Route path="audits" element={<AuditsPage />} />
+            <Route path="dashboard" element={<DashboardPage />} />
             <Route path="*" element={<Navigate to="users" replace />} />
           </Route>
-          <Route path="*" element={<Navigate to="/users" replace />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </Suspense>
     </BrowserRouter>

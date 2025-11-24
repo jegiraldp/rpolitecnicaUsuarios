@@ -3,7 +3,7 @@ import type { Career } from "./Career";
 import type { Interest } from "./Interest";
 
 export interface User {
-  id: string;
+  id: number;
   username: string;
   email: string;
   country?: string | null;
@@ -14,4 +14,3 @@ export interface User {
   career?: Career | null;
   interests?: Interest[];
 }
-

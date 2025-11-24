@@ -1,7 +1,7 @@
 export type StoredSession = {
   accessToken: string;
   user: {
-    id: string;
+    id: number;
     username: string;
     email: string;
     country?: string | null;

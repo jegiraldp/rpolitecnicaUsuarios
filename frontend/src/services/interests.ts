@@ -15,7 +15,7 @@ export const InterestsService = {
     }
     return InterestsAPI.list(filters);
   },
-  async get(id: string): Promise<Interest> {
+  async get(id: number): Promise<Interest> {
     if (USE_MOCK) {
       const data = await import("./mock/interests.json");
       const list = data.default as Interest[];
@@ -27,17 +27,17 @@ export const InterestsService = {
   },
   async create(dto: Pick<Interest, "name">): Promise<Interest> {
     if (USE_MOCK) {
-      return { id: crypto.randomUUID(), name: dto.name } as Interest;
+      return { id: Date.now(), name: dto.name } as Interest;
     }
     return InterestsAPI.create(dto);
   },
-  async update(id: string, dto: Partial<Pick<Interest, "name">>): Promise<Interest> {
+  async update(id: number, dto: Partial<Pick<Interest, "name">>): Promise<Interest> {
     if (USE_MOCK) {
       return { id, name: dto.name || "" } as Interest;
     }
     return InterestsAPI.update(id, dto);
   },
-  async remove(id: string): Promise<Interest> {
+  async remove(id: number): Promise<Interest> {
     if (USE_MOCK) {
       return { id, name: "" } as Interest;
     }

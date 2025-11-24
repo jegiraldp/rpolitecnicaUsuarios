@@ -15,7 +15,7 @@ export const CollegesService = {
     }
     return CollegesAPI.list(filters);
   },
-  async get(id: string): Promise<College> {
+  async get(id: number): Promise<College> {
     if (USE_MOCK) {
       const data = await import("./mock/colleges.json");
       const list = data.default as College[];
@@ -27,17 +27,17 @@ export const CollegesService = {
   },
   async create(dto: Pick<College, "name">): Promise<College> {
     if (USE_MOCK) {
-      return { id: crypto.randomUUID(), name: dto.name } as College;
+      return { id: Date.now(), name: dto.name } as College;
     }
     return CollegesAPI.create(dto);
   },
-  async update(id: string, dto: Partial<Pick<College, "name">>): Promise<College> {
+  async update(id: number, dto: Partial<Pick<College, "name">>): Promise<College> {
     if (USE_MOCK) {
       return { id, name: dto.name || "" } as College;
     }
     return CollegesAPI.update(id, dto);
   },
-  async remove(id: string): Promise<College> {
+  async remove(id: number): Promise<College> {
     if (USE_MOCK) {
       return { id, name: "" } as College;
     }
