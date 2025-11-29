@@ -8,7 +8,7 @@ type AuthContextType = {
   session: StoredSession | null;
   isAuthenticated: boolean;
   login: (payload: LoginPayload) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   loading: boolean;
 };
 
@@ -29,9 +29,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const logout = () => {
-    clearSession();
-    setSession(null);
+  const logout = async () => {
+    setLoading(true);
+    try {
+      await AuthAPI.logout();
+    } catch {
+      // keep clearing local session even if backend cookie removal fails
+    } finally {
+      clearSession();
+      setSession(null);
+      setLoading(false);
+    }
   };
 
   const value = useMemo<AuthContextType>(() => ({

@@ -29,8 +29,8 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const initial = session?.user.username?.[0]?.toUpperCase() || "U";
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     setMenuOpen(false);
     navigate("/login");
   };

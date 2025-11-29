@@ -67,6 +67,18 @@ export class AuthService {
     });
   }
 
+  private clearRefreshCookie(res: Response) {
+    const isProd = process.env.NODE_ENV === 'production';
+    const secure = isProd;
+    const sameSite = isProd ? 'none' : 'lax';
+    res.clearCookie('refresh_token', {
+      httpOnly: true,
+      secure,
+      sameSite,
+      path: '/',
+    });
+  }
+
   private parseCookies(req: Request): Record<string, string> {
     const header = req.headers.cookie;
     if (!header) return {};
@@ -164,6 +176,15 @@ export class AuthService {
           role: credentials.role,
         },
       };
+    } catch (error) {
+      handleException(error, this.logger);
+    }
+  }
+
+  async logout(res: Response) {
+    try {
+      this.clearRefreshCookie(res);
+      return { success: true };
     } catch (error) {
       handleException(error, this.logger);
     }

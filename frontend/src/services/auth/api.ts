@@ -20,4 +20,10 @@ export const AuthAPI = {
       method: "POST",
     });
   },
+  async logout(): Promise<void> {
+    return http<void>({
+      path: "/auth/logout",
+      method: "POST",
+    });
+  },
 };
