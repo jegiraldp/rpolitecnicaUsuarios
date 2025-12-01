@@ -1,73 +1,44 @@
-import { useEffect, useState } from "react";
-import Table from "@/components/ui/table";
-import type { ColumnDef } from "@tanstack/react-table";
-import type { User } from "@/types/User";
+import { useEffect, useMemo, useState } from "react";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { Card } from "@/components/ui/Card";
+import { useAuth } from "@/services/auth/AuthProvider";
 import { UsersService } from "@/services/users";
 import { UsersAPI } from "@/services/api/usersService";
-import Modal from "@/components/ui/Modal";
-import FiltersPanel, { type FilterField } from "@/components/ui/Filters";
 import { CollegesService } from "@/services/colleges";
 import { CareersService } from "@/services/careers";
 import { InterestsService } from "@/services/interests";
 import { CountriesService } from "@/services/countries";
+import type { User } from "@/types/User";
 import type { College } from "@/types/College";
 import type { Career } from "@/types/Career";
 import type { Interest } from "@/types/Interest";
 import type { CountryOption } from "@/services/countries";
-import { PlugIcon } from "@/utils/plugins/plugicon";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { Card } from "@/components/ui/Card";
-import { FormField } from "@/components/ui/FormField";
-import { useAuth } from "@/services/auth/AuthProvider";
+import { UserFilters } from "./components/UserFilters";
+import { UsersTable } from "./components/UsersTable";
+import { UserFormModal } from "./components/UserFormModal";
+import { ConfirmDeleteModal } from "./components/ConfirmDeleteModal";
+import { UserDetailsModal } from "./components/UserDetailsModal";
+import { createEmptyUserForm, type UserFormValues, type UsersFiltersState } from "./types";
+import { toNumberOrUndefined } from "./utils";
 
-const initials = (name: string) => {
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[1][0]).toUpperCase();
-};
-
-const capitalize = (s?: string | null) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : "");
-
-const initialsBadgeClass =
-  "flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-700 text-sm font-semibold uppercase";
-
-type UserForm = {
-  username: string;
-  email: string;
-  country: string;
-  collegeId: number | "";
-  careerId: number | "";
-  interestIds: number[];
-  isActive: boolean;
-};
-
-const createEmptyForm = (): UserForm => ({
+const initialFilters: UsersFiltersState = {
   username: "",
   email: "",
-  country: "",
-  collegeId: "",
-  careerId: "",
-  interestIds: [],
-  isActive: true,
-});
+  countries: "",
+  colleges: "",
+  careers: "",
+  interests: "",
+};
 
 export default function UsersPage() {
   const { isAuthenticated } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [filters, setFilters] = useState<Record<string, string | string[]>>({
-    username: "",
-    email: "",
-    countries: "",
-    colleges: "",
-    careers: "",
-    interests: "",
-  });
+  const [filters, setFilters] = useState<UsersFiltersState>(initialFilters);
   const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0 });
-  const [isOpen, setIsOpen] = useState(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [form, setForm] = useState<UserForm>(() => createEmptyForm());
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
   const [viewUser, setViewUser] = useState<User | null>(null);
   const [colleges, setColleges] = useState<College[]>([]);
   const [careers, setCareers] = useState<Career[]>([]);
@@ -76,25 +47,19 @@ export default function UsersPage() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [toDelete, setToDelete] = useState<User | null>(null);
 
-  const load = async (options?: { page?: number; limit?: number; filtersOverride?: Record<string, string | string[]> }) => {
+  const load = async (options?: { page?: number; limit?: number; filtersOverride?: UsersFiltersState }) => {
     const page = options?.page ?? pagination.page;
     const limit = options?.limit ?? pagination.limit;
     const activeFilters = options?.filtersOverride ?? filters;
-    const toNumberOrUndefined = (value: string | string[]) => {
-      const raw = (value as string) || "";
-      if (!raw) return undefined;
-      const parsed = Number(raw);
-      return Number.isNaN(parsed) ? undefined : parsed;
-    };
     try {
       setLoading(true);
       setError(null);
       const response = await UsersService.list({
         page,
         limit,
-        username: (activeFilters.username as string) || undefined,
-        email: (activeFilters.email as string) || undefined,
-        country: (activeFilters.countries as string) || undefined,
+        username: activeFilters.username || undefined,
+        email: activeFilters.email || undefined,
+        country: activeFilters.countries || undefined,
         collegeId: toNumberOrUndefined(activeFilters.colleges),
         careerId: toNumberOrUndefined(activeFilters.careers),
         interestId: toNumberOrUndefined(activeFilters.interests),
@@ -111,7 +76,10 @@ export default function UsersPage() {
       setLoading(false);
     }
   };
-  useEffect(() => { load(); }, []);
+
+  useEffect(() => {
+    load();
+  }, []);
 
   useEffect(() => {
     const loadRefs = async () => {
@@ -127,7 +95,10 @@ export default function UsersPage() {
         setInterests(int.data);
         setCountries(countryList);
       } catch {
-        // ignore
+        setColleges([]);
+        setCareers([]);
+        setInterests([]);
+        setCountries([]);
       }
     };
     loadRefs();
@@ -135,56 +106,46 @@ export default function UsersPage() {
 
   const openCreate = () => {
     if (!isAuthenticated) return;
-    setEditingId(null);
-    setForm(createEmptyForm());
-    setIsOpen(true);
+    setEditingUser(null);
+    setIsFormOpen(true);
   };
 
-  const handleEdit = (u: User) => {
+  const handleEdit = (user: User) => {
     if (!isAuthenticated) return;
-    setEditingId(u.id);
-    setForm({
-      username: u.username || "",
-      email: u.email || "",
-      country: u.country || "",
-      collegeId: u.college?.id || "",
-      careerId: u.career?.id || "",
-      interestIds: (u.interests || []).map((i) => i.id),
-      isActive: u.isActive,
-    });
-    setIsOpen(true);
-  };
-  const handleShowUser = (u: User) => {
-    setViewUser(u);
+    setEditingUser(user);
+    setIsFormOpen(true);
   };
 
-  const handleSave = async () => {
+  const handleShowUser = (user: User) => {
+    setViewUser(user);
+  };
+
+  const handleSave = async (formData: UserFormValues) => {
     if (!isAuthenticated) return;
-    if (!form.username.trim() || !form.email.trim()) return;
+    if (!formData.username.trim() || !formData.email.trim()) return;
     try {
       setLoading(true);
       setError(null);
-      const basePayload = {
-        username: form.username.trim(),
-        email: form.email.trim(),
-        country: form.country.trim() || undefined,
-        collegeId: form.collegeId === "" ? undefined : form.collegeId,
-        careerId: form.careerId === "" ? undefined : form.careerId,
-        interestIds: form.interestIds ?? [],
+      const payload = {
+        username: formData.username.trim(),
+        email: formData.email.trim(),
+        country: formData.country.trim() || undefined,
+        collegeId: formData.collegeId === "" ? undefined : formData.collegeId,
+        careerId: formData.careerId === "" ? undefined : formData.careerId,
+        interestIds: formData.interestIds ?? [],
       };
-      if (editingId) {
-        await UsersAPI.update(editingId, {
-          ...basePayload,
-          isActive: form.isActive,
+      if (editingUser) {
+        await UsersAPI.update(editingUser.id, {
+          ...payload,
+          isActive: formData.isActive,
         });
         await load();
       } else {
-        await UsersAPI.create({
-          ...basePayload,
-        });
+        await UsersAPI.create(payload);
         await load({ page: 1 });
       }
-      setIsOpen(false);
+      setIsFormOpen(false);
+      setEditingUser(null);
     } catch (e: any) {
       setError(e?.message || "Error guardando usuario");
     } finally {
@@ -192,15 +153,14 @@ export default function UsersPage() {
     }
   };
 
-  const requestDelete = (u: User) => {
+  const requestDelete = (user: User) => {
     if (!isAuthenticated) return;
-    setToDelete(u);
+    setToDelete(user);
     setConfirmOpen(true);
   };
 
   const confirmDelete = async () => {
-    if (!isAuthenticated) return;
-    if (!toDelete) return;
+    if (!isAuthenticated || !toDelete) return;
     try {
       setLoading(true);
       setError(null);
@@ -215,111 +175,19 @@ export default function UsersPage() {
     }
   };
 
-  const columns: ColumnDef<User>[] = [
-    {
-      id: "col_user",
-      header: "Usuario",
-      cell: ({ row }) => {
-        const u = row.original;
-        const inits = initials(u.username);
-        return (
-          <div className="flex items-center gap-3">
-            <div className={initialsBadgeClass}>
-              {inits}
-            </div>
-            <div className="leading-tight">
-              <div className="text-gray-900 font-medium">{capitalize(u.username)}</div>
-            </div>
-          </div>
-        );
-      },
-    },
-    {
-      id: "col_email",
-      header: "Email",
-      cell: ({ row }) => <span className="text-gray-700">{row.original.email}</span>,
-    },
-    {
-      id: "col_country",
-      header: "País",
-      cell: ({ row }) => (
-        <span className="px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs">
-          {capitalize(row.original.country || "")}
-        </span>
-      ),
-    },
-    ...(isAuthenticated
-      ? [{
-        id: "col_status",
-        header: "Estado",
-        cell: ({ row }) => (
-          <span
-            className={`px-2 py-1 rounded-full text-xs ${row.original.isActive ? "bg-green-100 text-green-700" : "bg-gray-200 text-gray-700"
-              }`}
-          >
-            {row.original.isActive ? "Activo" : "Inactivo"}
-          </span>
-        ),
-      }] as ColumnDef<User>[]
-      : []),
-    {
-      id: "col_college",
-      header: "Universidad",
-      cell: ({ row }) => <span>{row.original.college?.name || "—"}</span>,
-    },
-    {
-      id: "col_career",
-      header: "Carrera",
-      cell: ({ row }) => <span>{row.original.career?.name || "—"}</span>,
-    },
-    {
-      id: "col_interests",
-      header: "Intereses",
-      cell: ({ row }) => (
-        <InterestsCell interests={row.original.interests || []} />
-      ),
-    },
-    ...(
-      [{
-        id: "col_actions",
-        header: () => <div className="text-right w-full">Acciones</div>,
-        cell: ({ row }) => (
-          <div className="flex justify-end items-center gap-1">
-            {<button
-              onClick={() => handleShowUser(row.original)}
-              className="p-2 rounded-md text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition-colors"
-              aria-label="Show usuario"
-            >
-              <PlugIcon name="eye" size={18} />
-            </button>}
-            {isAuthenticated &&
-              <>
-                <button
-                  onClick={() => handleEdit(row.original)}
-                  className="p-2 rounded-md text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition-colors"
-                  aria-label="Editar usuario"
-                >
-                  <PlugIcon name="edit" size={18} />
-                </button>
-                <button
-                  onClick={() => requestDelete(row.original)}
-                  className="p-2 rounded-md text-red-600 hover:text-red-800 hover:bg-red-50 transition-colors"
-                  aria-label="Desactivar usuario"
-                >
-                  <PlugIcon name="delete" size={18} />
-                </button>
-              </>
-            }
-          </div>
-        ),
-      }] as ColumnDef<User>[]
-    ),
-  ];
+  const handleFiltersChange = (name: keyof UsersFiltersState, value: string | string[]) => {
+    setFilters((prev) => ({ ...prev, [name]: value as string }));
+  };
 
-  const countryOptions = [
-    { label: "Todos", value: "" },
-    ...countries.map((c) => ({ label: c.name, value: c.value })),
-  ];
+  const clearFilters = () => {
+    setFilters({ ...initialFilters });
+    load({ page: 1, filtersOverride: initialFilters });
+  };
+
+  const formInitialData = useMemo(
+    () => (editingUser ? buildFormFromUser(editingUser) : createEmptyUserForm()),
+    [editingUser],
+  );
 
   return (
     <div className="space-y-6">
@@ -338,242 +206,64 @@ export default function UsersPage() {
         }
       />
 
-      <FiltersPanel
-        fields={[
-          { name: 'username', label: 'Usuario', placeholder: 'Buscar por usuario' },
-          { name: 'email', label: 'Email', placeholder: 'Buscar por email', type: 'email' },
-          { name: 'countries', label: 'País', type: 'select', options: countryOptions },
-          { name: 'careers', label: 'Carrera', type: 'select', options: [{ label: 'Todas', value: '' }, ...careers.map(c => ({ label: c.name, value: String(c.id) }))] },
-          { name: 'colleges', label: 'Universidad', type: 'select', options: [{ label: 'Todas', value: '' }, ...colleges.map(c => ({ label: c.name, value: String(c.id) }))] },
-          { name: 'interests', label: 'Interés', type: 'select', options: [{ label: 'Todos', value: '' }, ...interests.map(i => ({ label: i.name, value: String(i.id) }))] },
-        ] as FilterField[]}
-        values={filters}
-        onChange={(n, v) => setFilters((f) => ({ ...f, [n]: v }))}
+      <UserFilters
+        filters={filters}
+        countries={countries}
+        careers={careers}
+        colleges={colleges}
+        interests={interests}
+        onChange={handleFiltersChange}
         onSearch={() => load({ page: 1 })}
-        onClear={() => {
-          const cleared = { username: '', email: '', countries: '', colleges: '', careers: '', interests: '' };
-          setFilters(cleared);
-          load({ page: 1, filtersOverride: cleared });
-        }}
+        onClear={clearFilters}
       />
 
       {error && <div className="mb-2 text-sm text-red-600">{error}</div>}
 
       <Card className="overflow-hidden" contentClassName="p-0">
-        <Table<User>
+        <UsersTable
           data={users}
-          columns={columns}
-          totalItems={pagination.total}
-          pageIndex={pagination.page - 1}
-          pageSize={pagination.limit}
+          isAuthenticated={isAuthenticated}
+          pagination={{ pageIndex: pagination.page - 1, pageSize: pagination.limit, totalItems: pagination.total }}
           onPageChange={(pageIndex) => load({ page: pageIndex + 1 })}
           onPageSizeChange={(size) => load({ page: 1, limit: size })}
+          onShow={handleShowUser}
+          onEdit={handleEdit}
+          onDelete={requestDelete}
         />
       </Card>
 
-      <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title={editingId ? "Editar usuario" : "Nuevo usuario"} size="lg">
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField label="Usuario" htmlFor="username">
-              <input
-                id="username"
-                value={form.username}
-                onChange={(e) => setForm((f) => ({ ...f, username: e.target.value }))}
-                className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Nombre de usuario"
-              />
-            </FormField>
-            <FormField label="Email" htmlFor="email">
-              <input
-                id="email"
-                type="email"
-                value={form.email}
-                onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="correo@dominio.com"
-              />
-            </FormField>
-            <FormField label="País">
-              <select
-                value={form.country}
-                onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))}
-                className="w-full border rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="" disabled>Selecciona un país</option>
-                {countries.map((c) => (
-                  <option key={c.code} value={c.value}>{c.name}</option>
-                ))}
-              </select>
-            </FormField>
-            <FormField label="Carrera">
-              <select
-                value={form.careerId}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  setForm((f) => ({ ...f, careerId: value === "" ? "" : Number(value) }));
-                }}
-                className="w-full border rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="" disabled>Selecciona una carrera</option>
-                {careers.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
-            </FormField>
-            <FormField label="Universidad">
-              <select
-                value={form.collegeId}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  setForm((f) => ({
-                    ...f,
-                    collegeId: value === "" ? "" : Number(value),
-                  }));
-                }}  
-                className="w-full border rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="" disabled>
-                  Selecciona una universidad
-                </option>
+      <UserFormModal
+        isOpen={isFormOpen}
+        isEditing={Boolean(editingUser)}
+        loading={loading}
+        initialData={formInitialData}
+        countries={countries}
+        careers={careers}
+        colleges={colleges}
+        interests={interests}
+        onClose={() => setIsFormOpen(false)}
+        onSubmit={handleSave}
+      />
 
-                {colleges.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+      <ConfirmDeleteModal
+        isOpen={confirmOpen}
+        loading={loading}
+        user={toDelete}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={confirmDelete}
+      />
 
-            </FormField>
-            {editingId && (
-              <FormField label="Estado del usuario">
-                <select
-                  value={form.isActive ? "true" : "false"}
-                  onChange={(e) => setForm((f) => ({ ...f, isActive: e.target.value === "true" }))}
-                  className="w-full border rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="true">Activo</option>
-                  <option value="false">Inactivo</option>
-                </select>
-              </FormField>
-            )}
-          </div>
-          <div>
-            <p className="block text-sm text-gray-700 mb-2">Intereses (Selecciona uno o más)</p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              {interests.map((i) => {
-                const checked = form.interestIds.includes(i.id);
-                return (
-                  <label key={i.id} className={`flex items-center gap-2 border rounded-md px-3 py-2 cursor-pointer ${checked ? 'border-blue-400 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}>
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={(e) => {
-                        const isOn = e.target.checked;
-                        setForm((f) => ({
-                          ...f,
-                          interestIds: isOn ? [...f.interestIds, i.id] : f.interestIds.filter((id) => id !== i.id),
-                        }));
-                      }}
-                      className="accent-blue-600"
-                    />
-                    <span className="text-sm text-gray-700">{capitalize(i.name)}</span>
-                  </label>
-                );
-              })}
-            </div>
-          </div>
-          <div className="flex justify-end gap-2">
-            <button onClick={() => setIsOpen(false)} className="px-3 py-2 rounded-md border">Cancelar</button>
-            <button onClick={handleSave} disabled={loading} className="px-3 py-2 rounded-md bg-blue-600 text-white disabled:opacity-60">Guardar</button>
-          </div>
-        </div>
-      </Modal>
-
-      <Modal isOpen={confirmOpen} onClose={() => setConfirmOpen(false)} title="Confirmar acción" size="sm">
-        <div className="space-y-4">
-          <p>
-            ¿Seguro que deseas desactivar al usuario
-            {" "}
-            <span className="font-semibold">{toDelete ? capitalize(toDelete.username) : ""}</span>?
-          </p>
-          <div className="flex justify-end gap-2">
-            <button onClick={() => setConfirmOpen(false)} className="px-3 py-2 rounded-md border">Cancelar</button>
-            <button onClick={confirmDelete} disabled={loading} className="px-3 py-2 rounded-md bg-red-600 text-white disabled:opacity-60">Desactivar</button>
-          </div>
-        </div>
-      </Modal>
-
-      <Modal isOpen={!!viewUser} onClose={() => setViewUser(null)} title="Detalles del usuario" size="md">
-        {viewUser && (
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <div className={initialsBadgeClass}>
-                {initials(viewUser.username)}
-              </div>
-              <div>
-                <div className="text-lg font-semibold text-gray-900">{capitalize(viewUser.username)}</div>
-                <div className="text-sm text-gray-600">{viewUser.email}</div>
-              </div>
-            </div>
-            <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3 text-sm">
-              <InfoLine label="País" value={capitalize(viewUser.country || "—")} />
-              {isAuthenticated && (
-                <InfoLine label="Estado" value={viewUser.isActive ? "Activo" : "Inactivo"} />
-              )}
-              <InfoLine label="Universidad" value={viewUser.college?.name || "—"} />
-              <InfoLine label="Carrera" value={viewUser.career?.name || "—"} />
-              <InfoLine
-                label="Intereses"
-                value={
-                  viewUser.interests?.length
-                    ? viewUser.interests.map((i) => capitalize(i.name)).join(", ")
-                    : "—"
-                }
-              />
-              <InfoLine label="Creado" value={formatDate(viewUser.createdAt)} />
-              <InfoLine label="Actualizado" value={viewUser.updatedAt ? formatDate(viewUser.updatedAt) : "—"} />
-            </dl>
-            <div className="flex justify-end">
-              <button onClick={() => setViewUser(null)} className="px-3 py-2 rounded-md border">
-                Cerrar
-              </button>
-            </div>
-          </div>
-        )}
-      </Modal>
+      <UserDetailsModal user={viewUser} isAuthenticated={isAuthenticated} onClose={() => setViewUser(null)} />
     </div>
   );
 }
 
-const formatDate = (value?: string | null) => {
-  if (!value) return "—";
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return value;
-  return d.toLocaleString();
-};
-
-const InfoLine = ({ label, value }: { label: string; value: string }) => (
-  <div className="flex flex-col">
-    <dt className="text-[11px] uppercase tracking-wide text-blue-600 font-semibold">{label}</dt>
-    <dd className="text-gray-900 mt-1">{value}</dd>
-  </div>
-);
-
-const InterestsCell = ({ interests }: { interests: { id: number; name: string }[] }) => {
-  if (!interests.length) return <span className="text-gray-500 text-sm">—</span>;
-  const [first, ...rest] = interests;
-  const extra = rest.length;
-  const title = interests.map((i) => capitalize(i.name)).join(", ");
-  return (
-    <div className="flex items-center gap-1">
-      <span className="px-2 py-1 rounded-md bg-blue-100 text-blue-700 text-xs" title={title}>
-        {capitalize(first.name)}
-      </span>
-      {extra > 0 && (
-        <span className="px-2 py-1 rounded-md bg-blue-50 text-blue-700 text-xs cursor-pointer" title={title}>
-          +{extra}
-        </span>
-      )}
-    </div>
-  );
-};
+const buildFormFromUser = (user: User): UserFormValues => ({
+  username: user.username || "",
+  email: user.email || "",
+  country: user.country || "",
+  collegeId: user.college?.id || "",
+  careerId: user.career?.id || "",
+  interestIds: (user.interests || []).map((interest) => interest.id),
+  isActive: user.isActive,
+});

@@ -1,105 +1,91 @@
-# Revista Politécnica · Plataforma (Backend + Frontend)
+# Panel Revista Politécnica
+Panel de administración de Revista Politécnica (API NestJS + SPA React con Vite/Tailwind).
 
-Aplicación monorepo (NestJS + React) para gestionar usuarios, publicaciones, revisiones y dashboard de la Revista Politécnica.
+## Tech stack
+- Backend: NestJS, TypeORM, MySQL/MariaDB (SQLite en tests), JWT.
+- Frontend: React 18, Vite, TailwindCSS, React Router.
+- Docker: `docker-compose` opcional para levantar base de datos y servicios.
 
-## Estructura
-- `backend/` – API NestJS (TypeORM, MySQL/SQLite para tests).
-- `frontend/` – SPA React + Vite + Tailwind (usa `frontend/src/services/api`).
-- `dumps/` – SQL de usuarios/publicaciones/reviews para importes puntuales.
+## Estructura rápida
+- `backend/`: API, entidades y módulos.
+- `frontend/`: SPA y servicios HTTP.
+- `dumps/`: datos de ejemplo SQL/TXT.
+- `docker/` y `docker-compose.yaml`: ayuda para entornos locales.
 
-## Requisitos
-- Node.js 18+ (se usa pnpm/yarn/npm; el repo tiene `yarn.lock`).
-- MySQL/MariaDB para runtime; SQLite se usa en pipelines/tests.
-- Docker opcional: `docker-compose.yaml` presente.
+## Requisitos previos
+- Node.js 18+ y `yarn`.
+- MySQL/MariaDB disponibles localmente (o usar Docker).
+- Variables de entorno en `backend/.env` (ver ejemplo abajo).
 
-## Instalación rápida
-```bash
-# instalar dependencias en raíz (opcional si quieres usar workspaces)
-yarn
+## Arranque rápido (local)
+1. Instalar dependencias raíz (workspace): `yarn`.
+2. Backend: `yarn --cwd backend install`.
+3. Frontend: `yarn --cwd frontend install`.
+4. Crear `backend/.env`:
+   ```
+   DB_HOST=localhost
+   DB_PORT=3306
+   DB_USERNAME=user
+   DB_PASSWORD=pass
+   DB_DATABASE=revista_politecnica
+   JWT_SECRET=changeme
+   REFRESH_JWT_SECRET=changeme_too
+   ```
+5. Arrancar API: `yarn --cwd backend start` (o `start:dev` si existe).
+6. Arrancar SPA: `yarn --cwd frontend dev` y abrir `http://localhost:5173`.
 
-# backend
-yarn --cwd backend install
-
-# frontend
-yarn --cwd frontend install
+## Arranque con Docker (opcional)
 ```
-
-## Configuración de entorno (backend)
-Copiar `.env.example` (si existe) o crear `.env` en `backend/` con variables como:
-```
-DB_HOST=localhost
-DB_PORT=3306
-DB_USERNAME=user
-DB_PASSWORD=pass
-DB_DATABASE=revista_politecnica
-JWT_SECRET=changeme
-```
-En CI se usa SQLite; en local pon tus credenciales MySQL. Ajusta `ormconfig`/`TypeOrmModule` según corresponda.
-
-## Scripts útiles
-Backend:
-```bash
-yarn --cwd backend start        # Nest en modo dev
-yarn --cwd backend test         # unit tests
-yarn --cwd backend test:e2e     # e2e (usa SQLite)
-```
-
-Frontend:
-```bash
-yarn --cwd frontend dev         # servidor Vite
-yarn --cwd frontend build       # build producción
-```
-
-Docker (opcional):
-```bash
 docker-compose up -d
 ```
+Luego conecta el backend a la DB del compose (mismas credenciales definidas en el YAML) y ejecuta migraciones/seed según necesites.
 
-## Funcionalidad clave
-- **Autenticación**: JWT; los controladores tienen decorator `@Auth` excepto endpoints de lectura.
-- **Usuarios**: CRUD, relación con carreras, intereses, publicaciones y reviews.
-- **Publicaciones**: estados (`queued`, `published`, `declined`, `archived`), relación con autor.
-- **Reviews**: recomendación (`accept`, `revisions`, `resubmit_elsewhere`, `decline`, `see_comments`, `no_recommendation`), relación con publicación y revisor.
-- **Dashboard** (backend `/dashboard`):
-  - KPIs: usuarios, artículos publicados, artículos revisados.
-  - Top autores y top revisores.
-  - Distribución por país (usuarios y publicaciones).
-  - Detalle de artículos publicados/revisados por usuario: `GET /dashboard/details/:type(author|reviewer)/:userId`.
+## Scripts útiles
+- Backend: `yarn --cwd backend start`, `yarn --cwd backend test`, `yarn --cwd backend test:e2e`.
+- Frontend: `yarn --cwd frontend dev`, `yarn --cwd frontend build`.
 
-Frontend `DashboardPage` consume esos endpoints, muestra KPIs, gráficos (Recharts) y permite ver detalle por usuario.
+## Flujo de autenticación
+- Login devuelve `accessToken` y escribe `refresh_token` httpOnly.
+- El frontend guarda la sesión en cookie propia (`panel-session`) y usa `Authorization: Bearer <accessToken>`.
+- El refresh se pide automáticamente contra `/auth/refresh-token` usando la cookie httpOnly.
+- Logout limpia la cookie de refresh en backend y borra la sesión local.
 
 ## Datos y seeds
-- `dumps/users_dump.sql`, `publications_dump.txt`, `publication_reviews_dump.txt` para importes manuales.
-- Factories de tests: `backend/src/common/tests/factories/*` generan usuarios, publicaciones y reviews para e2e.
-- Seed cleanup asegura orden correcto de borrado (publication_reviews → publications → users).
+- Dumps de referencia en `dumps/` (`users_dump.sql`, `publications_dump.txt`, etc.).
+- Tests e2e del backend generan datos con factories en `backend/src/common/tests/factories`.
 
-## Convenciones
-- Identificadores numéricos (sin UUID).
-- Campos `createdAt/updatedAt` en UTC (MySQL `datetime`).
-- Emails/usernames en minúscula (hooks en entidades).
-- Relaciones perezosas salvo algunas con `eager` puntuales (author/reviewer en publicaciones y reviews en tests).
+## Convenciones del repo
+- Usernames/emails en minúsculas; IDs numéricos.
+- Campos `createdAt/updatedAt` en UTC.
+- Revisar `frontend/src/services/api/http.ts` para la configuración de base URL y tokens.
+- Iconos centralizados en `frontend/src/assets/icons`.
 
-## Problemas comunes
-- **`sql_require_primary_key`** en Render/MySQL: asegúrate de que cada tabla tenga PK (todas las tablas del esquema ya la tienen).
-- **Restricciones FK en tests**: se usa SQLite; verifica orden de borrado (ya manejado en `SeedService`).
-- **Iconos en frontend**: `PlugIcon` usa `frontend/src/assets/icons/index.ts`; añade ahí nuevos SVGs y usa `name` como string.
-
-## Cómo contribuir
-1) Crea rama, implementa cambios.
-2) Corre linters/tests relevantes.
-3) Adjunta instrucciones de setup si afectan envs.
-
-## Rutas de referencia
-- Backend:
-  - `/dashboard` – métricas principales.
-  - `/dashboard/details/:type/:userId` – detalle de artículos publicados o revisados.
-  - Resto de CRUDs en módulos `users`, `careers`, `interests`, `colleges`.
-- Frontend:
-  - `frontend/src/modules/dashboard/DashboardPage.tsx` – Dashboard.
-  - `frontend/src/modules/users/UsersPage.tsx` – Gestión de usuarios.
-
-## Notas finales
-Si cambias el esquema, actualiza también:
-- Entidades TypeORM en `backend/src/**/entities`.
-- Factories de tests y seeds.
-- Tipos y DTOs en el frontend (`frontend/src/types` y servicios API).
+## Próximas tareas / ideas para el equipo
+- Módulo de recuperación y cambio de contraseña
+  - Envío de correo electrónico con enlace seguro para restablecimiento.
+  - Formulario para el cambio de contraseña desde el enlace recibido.
+- Gestión de accesos por parte del administrador
+  - Asignar acceso al sistema a los usuarios.
+  - Revocar el acceso cuando sea necesario.
+- Verificación de correo electrónico
+  - Validar email al otorgar acceso y para confirmar identidad antes de usar el sistema.
+- Bloqueo de cuenta por intentos fallidos
+  - Bloquear tras 3 intentos fallidos de inicio de sesión y permitir desbloqueo con nueva contraseña por correo.
+- Sistema de roles y permisos
+  - Roles por usuario y permisos por módulo/acción.
+- Sistema de auditorías
+  - Registrar inicios de sesión, creación/edición/actualización/eliminación de registros y acciones relevantes.
+- Módulo de visualización de auditorías
+  - Consultar auditorías con filtros por usuario, fecha, tipo de acción, etc.
+- Exportación de datos
+  - Exportar información en Excel (.xlsx) y PDF (.pdf).
+- Implementación de pruebas en el frontend
+  - Pruebas automatizadas de componentes, flujos principales y validaciones críticas.
+- Integración de pruebas del frontend en el pipeline
+  - Ejecutar automáticamente los tests del frontend en CI para detectar fallos antes del despliegue.
+- Módulo de visualización de publicaciones (artículos)
+  - Tabla de artículos con previsualización (icono “ojo”) y render de HTML en la vista previa.
+- Envío de artículos por correo a usuarios
+  - Enviar artículos a uno o varios usuarios desde un modal en publicaciones, filtrando destinatarios y disparando el correo.
+- Implementar alerts para las acciones del sitio web
+  - Mostrar feedback (por ejemplo, “Creado correctamente”) al crear, consultar o actualizar recursos.
