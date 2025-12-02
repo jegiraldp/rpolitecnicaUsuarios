@@ -1,5 +1,10 @@
 # Panel Revista Politécnica
-Panel de administración de Revista Politécnica (API NestJS + SPA React con Vite/Tailwind).
+Aplicacion web solicitada por el profesor Jorge Eliecer como version simplificada del sitio de la Revista Politecnica que hoy administra en OJS. Aqui se busca concentrar los datos con mejor experiencia de uso y visibilidad.
+
+OJS es un sistema de codigo abierto para gestionar y publicar revistas academicas en linea. Permite administrar usuarios con roles (autor, revisor, etc.), recibir propuestas de articulos y decidir si se aceptan, rechazan o envian a revision.
+
+Este proyecto nace para ofrecer una vista mas clara y rapida que OJS, agregando tareas que alla resultan enredadas o poco optimizadas. Por ahora incluye CRUD de usuarios, intereses, universidades, carreras y un dashboard basico. Mas abajo hay una lista de tareas pendientes; puedes revisarlas con el profesor y priorizar o proponer nuevas.
+
 
 ## Tech stack
 - Backend: NestJS, TypeORM, MySQL/MariaDB (SQLite en tests), JWT.
@@ -38,7 +43,8 @@ Panel de administración de Revista Politécnica (API NestJS + SPA React con Vit
 ```
 docker-compose up -d
 ```
-Luego conecta el backend a la DB del compose (mismas credenciales definidas en el YAML) y ejecuta migraciones/seed según necesites.
+
+En `dumps/` estan los respaldos de la base de datos anterior y la actual. Puedes cargarlos manualmente en tu gestor de BD (DBeaver u otro).
 
 ## Scripts útiles
 - Backend: `yarn --cwd backend start`, `yarn --cwd backend test`, `yarn --cwd backend test:e2e`.
