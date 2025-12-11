@@ -5,6 +5,10 @@ OJS es un sistema de codigo abierto para gestionar y publicar revistas academica
 
 Este proyecto nace para ofrecer una vista mas clara y rapida que OJS, agregando tareas que alla resultan enredadas o poco optimizadas. Por ahora incluye CRUD de usuarios, intereses, universidades, carreras y un dashboard basico. Mas abajo hay una lista de tareas pendientes; puedes revisarlas con el profesor y priorizar o proponer nuevas.
 
+## URL del proyecto desplegado
+
+https://web-revistapolitecnica.onrender.com/
+
 
 ## Tech stack
 - Backend: NestJS, TypeORM, MySQL/MariaDB (SQLite en tests), JWT.
